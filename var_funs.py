@@ -91,3 +91,23 @@ def fill_rbc(Ly, Ny, Tbc):
         # Rbc[i] = Tbc
         
     return Rbc
+
+# =============================================================================
+# Calculate positions of nodes (works for x and y)
+# =============================================================================
+    
+def positions(Lx, Ly, Nx, Ny):
+    
+    dx = Lx / Nx
+    dy = Ly / Ny
+    
+    xn = np.zeros((Nx * Ny, 3))         # Node positions matrix
+    
+    for ic in range(0, Nx * Ny):
+        xn[ic, 0] = int(ic)                          # Node id
+        xn[ic, 1] = dx / 2 + (ic % Nx) * dx     # Node x position
+        xn[ic, 2] = dy / 2 + (ic % Ny) * dy     # Node x position
+        
+        
+    return xn
+        
