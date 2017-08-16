@@ -32,8 +32,8 @@ Lambda = 0.60       # Wavelength of bedform (m)
 # Numerical model input parameters
 # =============================================================================
 
-Nx = 700            # Elements in x direction (number)
-Ny = 100             # Elements in y direction  (number)
+Nx = 10            # Elements in x direction (number)
+Ny = 10             # Elements in y direction  (number)
 bbc = d + Ly
 
 # =============================================================================
@@ -59,122 +59,76 @@ dy = Ly / Ny
 xn = positions(Lx, Ly, Nx, Ny)
 
 # =============================================================================
-# Initialize matrices with zeros (LHS and RHS)
+# Calculation of nonzero entries in matrix
 # =============================================================================
 
-LHS = scsp.csr_matrix((Nx * Ny, Nx * Ny))
-RHS = np.zeros(Nx * Ny)
+# Just checking
+nzero = 12 + (Nx - 2) * 16 + (Nx - 2) * (Ny - 2) * 5
+print('Total entries in matrix (size of matrix):')
+print(Nx** 2 * Ny ** 2)
+print('Nonzero entries:')
+print(nzero)
+print('Ratio of nonzero/total: ')
+print(nzero / (Nx * Ny) ** 2)
 
 # =============================================================================
-# Compute LHS and RHS elements 
-# =============================================================================
-
-# Inner cells with sides
-count = 1
-for i in range(Nx, (Ny - 1) * Nx):
-    
-    if i % Nx == 0:
-        # Left Hand Side Matrix Coefficients (LEFT BOUNDARY)
-        LHS[i, i] = -(3 * dy / dx + 2 * dx / dy)
-        LHS[i, i + 1] = dy / dx
-        LHS[i, i - Nx] = dx / dy
-        LHS[i, i + Nx] = dx / dy     
-        # Right Hand Side Vector Values
-        RHS[i] = -2 * Lbc[count] * dy / dx # Meter LBC
-        
-    elif i % Nx == (Nx - 1):
-        # Left Hand Side Matrix Coefficients (RIGHT BOUNDARY)
-        LHS[i, i] = -(3 * dy / dx + 2 * dx / dy)
-        LHS[i, i - 1] = dy / dx
-        LHS[i, i - Nx] = dx / dy
-        LHS[i, i + Nx] = dx / dy     
-        # Right Hand Side Vector Values
-        RHS[i] = -2 * Rbc[count] * dy / dx # Meter RBC
-        count += 1
-        
-    else:
-        # Left Hand Side Matrix Coeffcients
-        LHS[i, i] = -2 * (dy / dx + dx / dy)
-        LHS[i, i - 1] = dy / dx
-        LHS[i, i + 1] = dy / dx
-        LHS[i, i - Nx] = dx / dy
-        LHS[i, i + Nx] = dx / dy        
-        # Right Hand Side Vector values
-        RHS[i] = 0.
-        
-# Upper part of the domain
-count = 1
-for i in range(0, Nx):
-    
-    if i % Nx == 0:
-        # Left Hand Side Matrix Coeffcients (TOP LEFT CORNER OF THE DOMAIN)
-        LHS[i, i] = -3 * (dy / dx + dx / dy)
-        LHS[i, i + 1] = dy / dx
-        LHS[i, i + Nx] = dx / dy        
-        # Right Hand Side Vector values
-        RHS[i] = -2 * (Lbc[0] * dy / dx + Tbc[0] * dx / dy) 
-        
-    elif i % Nx == (Nx - 1):
-        # Left Hand Side Matrix Coeffcients (TOP RIGHT CORNER OF THE DOMAIN)
-        LHS[i, i] = -3 * (dy / dx + dx / dy)
-        LHS[i, i - 1] = dy / dx
-        LHS[i, i + Nx] = dx / dy        
-        # Right Hand Side Vector values
-        RHS[i] = -2 * (Rbc[0] * dy / dx + Tbc[Nx - 1] * dx / dy) 
-    
-    else: 
-        # Left Hand Side Matrix Coeffcients
-        LHS[i, i] = -(-2 * dy / dx + 3 * dx / dy)
-        LHS[i, i - 1] = dy / dx
-        LHS[i, i + 1] = dy / dx
-        LHS[i, i + Nx] = dx / dy        
-        # Right Hand Side Vector values
-        RHS[i] = -2 * Tbc[i] * dx / dy
-                
-# Lower part of the domain 
-count = 1
-for i in range((Ny - 1) * Nx, (Ny * Nx) - 1):
-
-    if i % Nx == 0:
-        # Left Hand Side Matrix Coeffcients (BOTTOM LEFT CORNER OF THE DOMAIN)
-        LHS[i, i] = -3 * (dy / dx + dx / dy)
-        LHS[i, i + 1] = dy / dx
-        LHS[i, i - Nx] = dx / dy        
-        # Right Hand Side Vector values
-        RHS[i] = -2 * (Lbc[Ny - 1] * dy / dx + Bbc[0] * dx / dy) 
-        
-    elif i % Nx == (Nx - 1):
-        # Left Hand Side Matrix Coeffcients (BOTTOM RIGHT CORNER OF THE DOMAIN)
-        LHS[i, i] = -3 * (dy / dx + dx / dy)
-        LHS[i, i - 1] = dy / dx
-        LHS[i, i - Nx] = dx / dy        
-        # Right Hand Side Vector values
-        RHS[i] = -2 * (Rbc[Ny - 1] * dy / dx + Bbc[Nx - 1] * dx / dy) 
-        
-    else:
-        # Left Hand Side Matrix Coeffcients
-        LHS[i, i] = -(-2 * dy / dx + 3 * dx / dy)
-        LHS[i, i - 1] = dy / dx
-        LHS[i, i + 1] = dy / dx
-        LHS[i, i - Nx] = dx / dy        
-        # Right Hand Side Vector values
-        RHS[i] = -2 * Bbc[count] * dx / dy
-    
-    count += 1
-    
-# Erase counter just for order in variables
-del count
-        
-
-# Verifying consistency of matrix        
-plt.spy(LHS)
-plt.savefig('spying.pdf')
-plt.show()
-
-# =============================================================================
-# 
+# Creating vectors for storing matrix in COORD system
+# THis parto of the script has been constructed due to the size of the problem
+# and the neccesity of faster computation
 # =============================================================================        
 
+# =============================================================================
+# Constructing vectors for top elements
+# =============================================================================
+
+# Top left corner data - 3 datos en matriz (es esquina)
+# Matrix data 
+TLcorn_data = np.array([-3 * (dy/dx + dx/dy), dy/dx, dx/dy])
+
+# Matrix indexes
+TLcorn_i = np.zeros(3)
+TLcorn_j = np.array([0, 1, Nx])
+
+# Top row of elements data - 4 datos en matriz por elemento (borde superior)
+Trow_data = np.tile([-(2 * dy/dx + 3 * dx/dy), dy/dx, dy/dx, dx/dy], Nx - 2)
+Trow_i = np.zeros((Nx - 2) * 4)
+Trow_j = np.zeros((Nx - 2) * 4)
+
+# Top row indexes for row and column  
+for i in range(1, Nx - 1):    
+    Trow_i[(i - 1) * 4:i * 4] = np.tile(i, 4)
+    Trow_j[(i - 1) * 4:i * 4] = np.array([i, i + 1, i - 1, i + Nx])
+
+# Top right corner data 
+# Matrix data 
+TRcorn_data = np.array([-3 * (dy/dx + dx/dy), dy/dx, dx/dy])
+# Matrix indexes
+TRcorn_i = np.array([Nx - 1, Nx - 1, Nx - 1])
+TRcorn_j = np.array([Nx - 1, Nx - 2, 2 * Nx - 1])
+
+Tel_data = np.concatenate((TLcorn_data, Trow_data, TRcorn_data), axis = 0) 
+Tel_i = np.concatenate((TLcorn_i, Trow_i, TRcorn_i), axis = 0)
+Tel_j = np.concatenate((TLcorn_j, Trow_j, TRcorn_j), axis = 0)
+
+del(TLcorn_data, TLcorn_i, TLcorn_j, Trow_data, Trow_i, Trow_j, TRcorn_data,
+    TRcorn_i, TRcorn_j)
+
+# =============================================================================
+# Constructing vectors of elements in the middle of the domain. Includes the 
+# vertical boundary elements
+# =============================================================================
+
+Iel_data = np.zeros((Ny - 2) * (8 + (Nx - 2) * 5)) 
+Iel_i = np.zeros((Ny - 2) * (8 + (Nx - 2) * 5))
+Iel_j = np.zeros((Ny - 2) * (8 + (Nx - 2) * 5))
 
 
 
+# =============================================================================
+# Spying the matrix to see its construction
+# =============================================================================
+
+LHS = scsp.coo_matrix((Tel_data, (Tel_i, Tel_j)), shape = ((Nx * Ny), 
+                       (Nx * Ny)))
+
+plt.spy(LHS, markersize = 2)
