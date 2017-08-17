@@ -33,7 +33,7 @@ Lambda = 0.60       # Wavelength of bedform (m)
 # =============================================================================
 
 Nx = 10            # Elements in x direction (number)
-Ny = 10             # Elements in y direction  (number)
+Ny = 10            # Elements in y direction  (number)
 bbc = d + Ly
 
 # =============================================================================
@@ -77,58 +77,128 @@ print(nzero / (Nx * Ny) ** 2)
 # and the neccesity of faster computation
 # =============================================================================        
 
+LHS_data = np.array
+LHS_i = np.array
+LHS_j = np.array
+RHS = np.zeros(Nx * Ny)
+
 # =============================================================================
-# Constructing vectors for top elements
+# Constructing vectors for top elements - data, rows and columns. Includes also 
+# the construction of the RHS vector for each position
 # =============================================================================
 
-# Top left corner data - 3 datos en matriz (es esquina)
-# Matrix data 
-TLcorn_data = np.array([-3 * (dy/dx + dx/dy), dy/dx, dx/dy])
-
-# Matrix indexes
-TLcorn_i = np.zeros(3)
-TLcorn_j = np.array([0, 1, Nx])
-
-# Top row of elements data - 4 datos en matriz por elemento (borde superior)
-Trow_data = np.tile([-(2 * dy/dx + 3 * dx/dy), dy/dx, dy/dx, dx/dy], Nx - 2)
-Trow_i = np.zeros((Nx - 2) * 4)
-Trow_j = np.zeros((Nx - 2) * 4)
-
-# Top row indexes for row and column  
-for i in range(1, Nx - 1):    
-    Trow_i[(i - 1) * 4:i * 4] = np.tile(i, 4)
-    Trow_j[(i - 1) * 4:i * 4] = np.array([i, i + 1, i - 1, i + Nx])
-
-# Top right corner data 
-# Matrix data 
-TRcorn_data = np.array([-3 * (dy/dx + dx/dy), dy/dx, dx/dy])
-# Matrix indexes
-TRcorn_i = np.array([Nx - 1, Nx - 1, Nx - 1])
-TRcorn_j = np.array([Nx - 1, Nx - 2, 2 * Nx - 1])
-
-Tel_data = np.concatenate((TLcorn_data, Trow_data, TRcorn_data), axis = 0) 
-Tel_i = np.concatenate((TLcorn_i, Trow_i, TRcorn_i), axis = 0)
-Tel_j = np.concatenate((TLcorn_j, Trow_j, TRcorn_j), axis = 0)
-
-del(TLcorn_data, TLcorn_i, TLcorn_j, Trow_data, Trow_i, Trow_j, TRcorn_data,
-    TRcorn_i, TRcorn_j)
-
+for i in range(0, Nx):
+    
+    if i % Nx == 0:        
+        # Top left corner data - 3 datos en matriz (es esquina)
+        # Matrix data 
+        LHS_data = np.array([-3 * (dy/dx + dx/dy), dy/dx, dx/dy])        
+        # Matrix indexes
+        LHS_i = np.zeros(3)
+        LHS_j = np.array([0, 1, Nx])
+        RHS[i] = -2 * (Lbc[0] * dy/dx + Tbc[0] * dx/dy)
+    
+    elif i % Nx == Nx - 1:        
+        # Top right corner data 
+        # Matrix data 
+        LHS_data = np.concatenate((LHS_data, [-3 * (dy/dx + dx/dy), dy/dx, 
+                                              dx/dy]), axis = 0)
+        # Matrix indexes
+        LHS_i = np.concatenate((LHS_i, [i, i, i]), axis = 0)
+        LHS_j = np.concatenate((LHS_j, [Nx - 1, Nx - 2, 2 * Nx - 1]), axis = 0)        
+        RHS[i] = -2 * (Rbc[0] * dy/dx + Tbc[Nx - 1] * dx/dy)
+    
+    else:        
+        # Top row of elements data - 4 datos en matriz por elemento (borde 
+        # superior)
+        LHS_data = np.concatenate((LHS_data, [-(2 * dy/dx + 3 * dx/dy), dy/dx, 
+                                              dy/dx, dx/dy]), axis = 0)
+        LHS_i = np.concatenate((LHS_i, [i, i, i, i]), axis = 0)
+        LHS_j = np.concatenate((LHS_j, [i, i + 1, i - 1, i + Nx]), axis = 0)
+        
+        RHS[i] = -2 * (dx/dy) * Tbc[i]        
 # =============================================================================
 # Constructing vectors of elements in the middle of the domain. Includes the 
-# vertical boundary elements
+# vertical boundary elements. Includes also the construction of the RHS vector
+# with values for the solution of the system
 # =============================================================================
 
-Iel_data = np.zeros((Ny - 2) * (8 + (Nx - 2) * 5)) 
-Iel_i = np.zeros((Ny - 2) * (8 + (Nx - 2) * 5))
-Iel_j = np.zeros((Ny - 2) * (8 + (Nx - 2) * 5))
-
-
-
+for i in range(Nx, (Ny - 1) * Nx):
+    
+    if i % Nx == 0:        
+        # Left boundary matrix coefficients, rows and columns
+        LHS_data = np.concatenate((LHS_data, [-(3 * dy/dx + 2 * dx/dy), dy/dx,
+                                                dx/dy, dx/dy]), axis = 0)
+        LHS_i = np.concatenate((LHS_i, [i, i, i, i]), axis = 0)
+        LHS_j = np.concatenate((LHS_j, [i, i + 1, i - Nx, i + Nx]), axis = 0)
+        
+        # Right hand side values for Dirichlet boundary condition
+        RHS[i] = - 2 * (dy/dx) * Lbc[int(i/Nx)]
+        
+    elif i % Nx == Nx - 1:
+        # Right bounday matrix coefficients, rows and columns
+        LHS_data = np.concatenate((LHS_data, [-(3 * dy/dx + 2 * dx/dy), dx/dy,
+                                                dx/dy, dx/dy]), axis = 0)
+        LHS_i = np.concatenate((LHS_i, [i, i, i, i]), axis = 0)
+        LHS_j = np.concatenate((LHS_j, [i, i - 1, i - Nx, i + Nx]), axis = 0)
+        # Right hand side for Dirichlet boundary condition
+        RHS[i] = - 2 * (dy/dx) * Rbc[int(((i + 1)/Nx)-1)]
+        
+    else:
+        # Most inner cells filling with rows and columns
+        LHS_data = np.concatenate((LHS_data, [-2 * (dy/dx + dx/dy), dy/dx, 
+                                              dy/dx, dx/dy, dx/dy]), axis = 0)
+        LHS_i = np.concatenate((LHS_i, [i, i, i, i, i]))
+        LHS_j = np.concatenate((LHS_j, [i, i + 1, i - 1, i + Nx, i - Nx]), 
+                              axis = 0)
+        # This part does not include RHS values since the equation equals zero
+        # for the most inner cells
+    
 # =============================================================================
-# Spying the matrix to see its construction
+# Constructing vectors of elements in the bottom of the domain. Includes the 
+# horizontal boundary elements. Includes also the RHS vector construction for 
+# the solution of the linear system
 # =============================================================================
 
-LHS = scsp.coo_matrix((Tel_data, (Tel_i, Tel_j)), shape = ((Nx * Ny), 
+for i in range((Ny - 1) * Nx, Ny * Nx):
+    
+    if i % Nx == 0:        
+        # Bottom left corner data - 3 datos en matriz (es esquina)
+        # Matrix data 
+        LHS_data = np.concatenate((LHS_data, [-3 * (dy/dx + dx/dy), dy/dx, 
+                                              dx/dy]), axis = 0)        
+        # Matrix indexes
+        LHS_i = np.concatenate((LHS_i, [i, i, i]), axis = 0)
+        LHS_j = np.concatenate((LHS_j, [i, i + 1, i - Nx]), axis = 0)
+    
+    elif i % Nx == Nx - 1:        
+        # Bottom right corner data 
+        # Matrix data 
+        LHS_data = np.concatenate((LHS_data, [-3 * (dy/dx + dx/dy), dy/dx, 
+                                              dx/dy]), axis = 0)
+        # Matrix indexes
+        LHS_i = np.concatenate((LHS_i, [i, i, i]), axis = 0)
+        LHS_j = np.concatenate((LHS_j, [i, i - 1, i - Nx]), axis = 0)        
+    
+    else:        
+        # Bottom row of elements data - 4 datos en matriz por elemento (borde 
+        # inferior)
+        LHS_data = np.concatenate((LHS_data, [-(2 * dy/dx + 3 * dx/dy), dy/dx, 
+                                              dy/dx, dx/dy]), axis = 0)
+        LHS_i = np.concatenate((LHS_i, [i, i, i, i]), axis = 0)
+        LHS_j = np.concatenate((LHS_j, [i, i + 1, i - 1, i - Nx]), axis = 0)
+        
+# ==============================================================================
+# Spying the matrix to see its construction.
+# ==============================================================================
+
+LHS = scsp.coo_matrix((LHS_data, (LHS_i, LHS_j)), shape = ((Nx * Ny), 
                        (Nx * Ny)))
 
-plt.spy(LHS, markersize = 2)
+# Transforming matrix to CSR format to perform operations quickly
+LHS = LHS.tocsr()
+
+plt.spy(LHS, markersize = 0.5)
+
+
+
