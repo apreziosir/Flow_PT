@@ -32,8 +32,8 @@ Lambda = 0.60       # Wavelength of bedform (m)
 # Numerical model input parameters
 # =============================================================================
 
-Nx = 10            # Elements in x direction (number)
-Ny = 10            # Elements in y direction  (number)
+Nx = 100            # Elements in x direction (number)
+Ny = 100            # Elements in y direction  (number)
 bbc = d + Ly
 
 # =============================================================================
@@ -160,6 +160,7 @@ for i in range(Nx, (Ny - 1) * Nx):
 # the solution of the linear system
 # =============================================================================
 
+count = 0
 for i in range((Ny - 1) * Nx, Ny * Nx):
     
     if i % Nx == 0:        
@@ -170,6 +171,8 @@ for i in range((Ny - 1) * Nx, Ny * Nx):
         # Matrix indexes
         LHS_i = np.concatenate((LHS_i, [i, i, i]), axis = 0)
         LHS_j = np.concatenate((LHS_j, [i, i + 1, i - Nx]), axis = 0)
+        
+        RHS[i] = -2 * (Lbc[Ny - 1] * dy/dx + Bbc[0] * dx/dy)
     
     elif i % Nx == Nx - 1:        
         # Bottom right corner data 
@@ -178,7 +181,9 @@ for i in range((Ny - 1) * Nx, Ny * Nx):
                                               dx/dy]), axis = 0)
         # Matrix indexes
         LHS_i = np.concatenate((LHS_i, [i, i, i]), axis = 0)
-        LHS_j = np.concatenate((LHS_j, [i, i - 1, i - Nx]), axis = 0)        
+        LHS_j = np.concatenate((LHS_j, [i, i - 1, i - Nx]), axis = 0) 
+        
+        RHS[i] = -2 * (Rbc[Ny - 1] * dy/dx + Bbc[Nx - 1] * dx/dy)
     
     else:        
         # Bottom row of elements data - 4 datos en matriz por elemento (borde 
@@ -188,17 +193,38 @@ for i in range((Ny - 1) * Nx, Ny * Nx):
         LHS_i = np.concatenate((LHS_i, [i, i, i, i]), axis = 0)
         LHS_j = np.concatenate((LHS_j, [i, i + 1, i - 1, i - Nx]), axis = 0)
         
-# ==============================================================================
+        RHS[i] = -2 * (dx/dy) * Bbc[count] 
+        
+    count +=1
+# =============================================================================
 # Spying the matrix to see its construction.
-# ==============================================================================
+# =============================================================================
 
 LHS = scsp.coo_matrix((LHS_data, (LHS_i, LHS_j)), shape = ((Nx * Ny), 
                        (Nx * Ny)))
 
 # Transforming matrix to CSR format to perform operations quickly
 LHS = LHS.tocsr()
-
+                
 plt.spy(LHS, markersize = 0.5)
+
+# =============================================================================
+# Solving linear system for the pressure field (Laplace's equation)
+# =============================================================================
+
+P = scsp.linalg.spsolve(LHS, RHS)
+
+# =============================================================================
+# Reshaping and plotting solution to check values and different Bc's
+# =============================================================================
+
+RTA = P.reshape((Nx, Ny))
+
+plt.figure()
+CS = plt.surf(RTA)
+plt.clabel(CS, inline=1, fontsize=10)
+plt.title('Simplest default with labels')
+plt.show()
 
 
 
