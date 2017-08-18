@@ -9,6 +9,7 @@ August 2017
 import numpy as np
 import scipy.sparse as scsp
 import matplotlib.pyplot as plt
+from matplotlib import colors, ticker, cm
 from var_funs import alt_media, fill_tbc, fill_bbc, fill_lbc, fill_rbc
 from var_funs import positions 
 
@@ -32,7 +33,7 @@ Lambda = 0.60       # Wavelength of bedform (m)
 # Numerical model input parameters
 # =============================================================================
 
-Nx = 100            # Elements in x direction (number)
+Nx = 300            # Elements in x direction (number)
 Ny = 100            # Elements in y direction  (number)
 bbc = d + Ly
 
@@ -202,11 +203,11 @@ for i in range((Ny - 1) * Nx, Ny * Nx):
 
 LHS = scsp.coo_matrix((LHS_data, (LHS_i, LHS_j)), shape = ((Nx * Ny), 
                        (Nx * Ny)))
-
-# Transforming matrix to CSR format to perform operations quickly
+#
+## Transforming matrix to CSR format to perform operations quickly
 LHS = LHS.tocsr()
-                
-plt.spy(LHS, markersize = 0.5)
+#                
+#plt.spy(LHS, markersize = 0.5)
 
 # =============================================================================
 # Solving linear system for the pressure field (Laplace's equation)
@@ -220,11 +221,15 @@ P = scsp.linalg.spsolve(LHS, RHS)
 
 RTA = P.reshape((Nx, Ny))
 
-plt.figure()
-CS = plt.surf(RTA)
-plt.clabel(CS, inline=1, fontsize=10)
-plt.title('Simplest default with labels')
-plt.show()
+X, Y = np.meshgrid(xn[:,1], xn[:,2])
+
+im = plt.matshow(RTA, cmap=plt.cm.hot, aspect='auto')
+
+#plt.figure()
+#CS = plt.surf(RTA)
+#plt.clabel(CS, inline=1, fontsize=10)
+#plt.title('Simplest default with labels')
+#plt.show()
 
 
 
