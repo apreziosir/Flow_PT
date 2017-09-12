@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 """
-Functions for script of Laplace's equation for pressure in Particle Tracking 
-model
-Antonio Preziosi-Ribero / Universidad Nacional de Colombia
-August 2017
+Created on Tue Sep 12 10:24:15 2017
+
+@author: apreziosir
 """
 
 import numpy as np
@@ -30,17 +28,17 @@ def alt_media(U, H, d):
     
 def fill_tbc(Lx, Nx, hm, Lambda):
     
-    Tbc = np.linspace(0, Lx, Nx)    # Defining vector
-    k = 2 * np.pi / Lambda          # Defining k
-    dx = Lx / Nx                    # Calculating dx
+    Tbc = np.linspace(0, Lx, Nx + 1)        # Defining vector
+    k = 2 * np.pi / Lambda                  # Defining k
+    dx = Lx / (Nx - 1)                      # Calculating dx
     
     for i in range(0, len(Tbc)):
         
         # Real function - should work if test function works
-#        Tbc[i] = hm * np.sin(k * ((dx/2) + i * dx))
+#        Tbc[i] = hm * np.sin(k * i * dx)
         
         # Test function - just to test the program under known conditions
-        Tbc[i] = 7 * ((dx/2) + i * dx) 
+        Tbc[i] = 7 * (i * dx) 
         
     return Tbc
 
@@ -49,21 +47,10 @@ def fill_tbc(Lx, Nx, hm, Lambda):
 # It must vary (constant, linear)
 # =============================================================================
 
-def fill_bbc(Lx, Ly, Nx, hm, Lambda, bbc):
+def fill_bbc(Tbc, Ly):
     
-    Bbc = np.linspace(0, Lx, Nx)    # Defining vector
-    k = 2 * np.pi / Lambda          # Defining k
-    dx = Lx / Nx                    # Calculating dx
+    Bbc = Tbc + Ly    # Defining vector
     
-    for i in range(0, len(Bbc)):
-        # Sine wave with hydrostatic increment (just water column)
-#        Bbc[i] = hm * np.sin(k * ((dx/2) + i * dx)) + bbc
-        # Constant value
-        # Bbc[i] = bbc
-        
-        # Test function - just to test the program under known conditions
-        Bbc[i] = 6 * ((dx/2) + i * dx) * (-Ly) + 7 * ((dx/2) + i * 
-           dx) - 8 * Ly
         
     return Bbc
 
@@ -107,23 +94,3 @@ def fill_rbc(Lx, Ly, Nx, Ny, Tbc):
         Rbc[i] = -6 * Lx * ((dy/2) + i * dy) + 7 * ((dx/2) + i * dx)
         
     return Rbc
-
-# =============================================================================
-# Calculate positions of nodes (works for x and y)
-# =============================================================================
-    
-def positions(Lx, Ly, Nx, Ny):
-    
-    dx = Lx / Nx
-    dy = Ly / Ny
-    
-    xn = np.zeros((Nx * Ny, 3))         # Node positions matrix
-    
-    for ic in range(0, Nx * Ny):
-        xn[ic, 0] = int(ic)                          # Node id
-        xn[ic, 1] = dx / 2 + (ic % Nx) * dx     # Node x position
-        xn[ic, 2] = -dy / 2 - (ic % Ny) * dy     # Node y position
-        
-        
-    return xn
-        

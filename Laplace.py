@@ -9,7 +9,7 @@ August 2017
 import numpy as np
 import scipy.sparse as scsp
 import matplotlib.pyplot as plt
-from matplotlib import colors, ticker, cm
+import seaborn as sns
 from var_funs import alt_media, fill_tbc, fill_bbc, fill_lbc, fill_rbc
 from var_funs import positions 
 
@@ -34,7 +34,7 @@ Lambda = 0.60       # Wavelength of bedform (m)
 # =============================================================================
 
 Nx = 300            # Elements in x direction (number)
-Ny = 100            # Elements in y direction  (number)
+Ny = 100           # Elements in y direction  (number)
 bbc = d + Ly
 
 # =============================================================================
@@ -44,9 +44,9 @@ bbc = d + Ly
 
 hm = alt_media(U, H, d)
 Tbc = fill_tbc(Lx, Nx, hm, Lambda)
-Bbc = fill_bbc(Lx, Nx, hm, Lambda, bbc)
+Bbc = fill_bbc(Lx, Ly, Nx, hm, Lambda, bbc)
 Lbc = fill_lbc(Ly, Ny, Tbc[0])
-Rbc = fill_rbc(Ly, Ny, Tbc[Nx - 1])
+Rbc = fill_rbc(Lx, Ly, Nx, Ny, Tbc[Nx - 1])
 
 # =============================================================================
 # Node positions - mesh generation
@@ -219,17 +219,22 @@ P = scsp.linalg.spsolve(LHS, RHS)
 # Reshaping and plotting solution to check values and different Bc's
 # =============================================================================
 
-RTA = P.reshape((Nx, Ny))
+RTA = np.reshape(P, (Ny, Nx), order='C')
 
-X, Y = np.meshgrid(xn[:,1], xn[:,2])
+print('El valor máximo de RTA es:')
+print(np.amax(RTA))
 
-im = plt.matshow(RTA, cmap=plt.cm.hot, aspect='auto')
+print('El valor mínimo de RTA es:')
+print(np.amin(RTA))
 
-#plt.figure()
-#CS = plt.surf(RTA)
-#plt.clabel(CS, inline=1, fontsize=10)
-#plt.title('Simplest default with labels')
-#plt.show()
+#ax = sns.heatmap(RTA)
+
+x = np.arange(Nx)
+y = np.arange(Ny)
+X, Y = np.meshgrid(x, y)
+plt.contourf(X, Y, RTA)
+plt.clabel(CS4, fmt='%2.1f', colors='w', fontsize=14)
+plt.show()
 
 
 
