@@ -24,16 +24,16 @@ d = 0.20            # Mean depth of flow
 # Input variables - domain and bed characteristics
 # =============================================================================
 
-Lx = 10.00           # Length of the flume (m) (considered for numerical model) 
-Ly = 10.00           # Depth of bed (m)
+Lx = 1.00           # Length of the flume (m) (considered for numerical model) 
+Ly = 1.00           # Depth of bed (m)
 Lambda = 0.60        # Wavelength of bedform (m)
 
 # =============================================================================
 # Numerical model input parameters
 # =============================================================================
 
-Nx = 10            # Nodes in x direction (number)
-Ny = 10            # Nodes in y direction  (number)
+Nx = 500            # Nodes in x direction (number)
+Ny = 500            # Nodes in y direction  (number)
 
 # =============================================================================
 # Calculate hm value for the problem assigned and set a vector for the 
@@ -76,8 +76,38 @@ RHS = RHS_build(Tbc, Bbc, Lbc, Rbc)
 # =============================================================================
 
 LHS = LHS_build(Nx, Ny)
+LHS = LHS.tocsr()
 
+# Checking matrix construction
+# plt.spy(LHS, markersize = 4)
 
+# =============================================================================
+# Solving linear system for the pressure field (Laplace's equation)
+# =============================================================================
 
+P = scsp.linalg.spsolve(LHS, RHS)
 
+# =============================================================================
+# Reshaping and plotting solution to check values and different Bc's
+# =============================================================================
+
+RTA = np.reshape(P, (Ny, Nx), order='C')
+
+print('El valor máximo de RTA es:')
+print(np.amax(RTA))
+
+print('El valor mínimo de RTA es:')
+print(np.amin(RTA))
+
+#ax = sns.heatmap(RTA)
+
+#x = np.arange(Nx)
+#y = np.arange(Ny)
+#X, Y = np.meshgrid(x, y)
+#plt.contourf(X, Y, RTA)
+#plt.clabel(CS4, fmt='%2.1f', colors='w', fontsize=14)
+#plt.show()
+
+plt.imshow(RTA, cmap='hot', interpolation='nearest')
+plt.show()
 
