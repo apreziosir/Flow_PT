@@ -66,6 +66,9 @@ def fill_tbc(Lx, Nx, hm, Lambda):
         # Test function - just to test the program under known conditions
         Tbc[i] = 7 * (i * dx) 
         
+        # Test function 2
+#        Tbc[i] = i * dx
+        
     return Tbc
 
 # =============================================================================
@@ -81,8 +84,11 @@ def fill_bbc(Tbc, Nx, Lx, Ly):
     
 #   Test case 
     for i in range(0, len(Bbc)):
-        
+        # Test case 1
         Bbc[i] = 6 * Ly * (i * dx) + 7 * (i * dx) + 8 * Ly
+        
+        # Test case 2
+#        Bbc[i] = Ly + i * dx
         
     return Bbc
 
@@ -104,6 +110,9 @@ def fill_lbc(Ly, Ny, Tbc):
         # Test function - just to test the program under known conditions
         Lbc[i] = 8 * dy * (i + 1)
         
+        # Test case 2
+#        Lbc[i] = (i + 1) * dy
+        
     return Lbc
 
 # =============================================================================
@@ -123,6 +132,9 @@ def fill_rbc(Lx, Ly, Ny, Tbc):
         
         # Test function - just to test the program under known conditions
         Rbc[i] = 6 * Lx * (i + 1) * dy + 7 * Lx + 8 * (i + 1) * dy
+        
+        # Test case 2
+#        Rbc[i] = Lx + (i + 1) * dy
         
     return Rbc
 
@@ -163,16 +175,16 @@ def RHS_build(Tbc, Bbc, Lbc, Rbc):
         
         # bloque superior (Tbc)
         if i == 0:
-            rhs[0:Nx] = Tbc
+            rhs[0:Nx] = -Tbc
     
         elif i == (Ny - 1):
-            rhs[-Nx:] = Bbc
+            rhs[-Nx:] = -Bbc
         
         # Bloques inteirores
         else:
             ind = i *Nx
-            zblock[0] = Lbc[i - 1]
-            zblock[-1] = Rbc[i - 1]
+            zblock[0] = -Lbc[i - 1]
+            zblock[-1] = -Rbc[i - 1]
             rhs[ind:ind + Nx] = zblock
             
     return rhs
@@ -182,19 +194,19 @@ def RHS_build(Tbc, Bbc, Lbc, Rbc):
 # (Coordinate system storage mode to save space)
 # =============================================================================  
 
-def LHS_build(Nx, Ny):
+def LHS_build(Nx, Ny, dx, dy, Dif):
     
     intern = Nx * Ny - (2 * Nx) - 2 * (Ny - 2)
     
     # Elementos de la diagonal mayor de la matriz LHS
-    Diag_d = np.ones(Nx * Ny)
+    Diag_d = np.ones(Nx * Ny) * (2 * Dif / (dx ** 2) + 2 * Dif / (dy ** 2))
     Diag_i = np.arange(0, (Nx * Ny), 1)
     Diag_j = np.arange(0, (Nx * Ny), 1)
     
     # Elementos de las diagonales menores de la matriz (cada vector de valores
     # se repite dos veces ya que hay dos de cada digonal)    
-    Diag2_d = - 0.25 * np.ones(intern * 2)
-    Diag3_d = - 0.25 * np.ones(intern * 2)
+    Diag2_d = -(Dif / (dx ** 2)) * np.ones(intern * 2)
+    Diag3_d = -(Dif / (dy ** 2)) * np.ones(intern * 2)
         
     # Coordenadas de elementos, no se llenan sino hasta el loop
     Diag2_i = np.zeros(intern * 2)

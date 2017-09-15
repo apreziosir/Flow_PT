@@ -27,13 +27,14 @@ d = 0.20            # Mean depth of flow
 Lx = 1.00           # Length of the flume (m) (considered for numerical model) 
 Ly = 1.00           # Depth of bed (m)
 Lambda = 0.60        # Wavelength of bedform (m)
+Dif = 1.0           # Diffusion coefficient (just for fun)
 
 # =============================================================================
 # Numerical model input parameters
 # =============================================================================
 
-Nx = 500            # Nodes in x direction (number)
-Ny = 500            # Nodes in y direction  (number)
+Nx = 8           # Nodes in x direction (number)
+Ny = 8           # Nodes in y direction  (number)
 
 # =============================================================================
 # Calculate hm value for the problem assigned and set a vector for the 
@@ -75,7 +76,7 @@ RHS = RHS_build(Tbc, Bbc, Lbc, Rbc)
 # Coordinate system storage - Later transformed to CSR (by Python script)
 # =============================================================================
 
-LHS = LHS_build(Nx, Ny)
+LHS = LHS_build(Nx, Ny, dx, dy, Dif)
 LHS = LHS.tocsr()
 
 # Checking matrix construction
@@ -99,15 +100,14 @@ print(np.amax(RTA))
 print('El valor mínimo de RTA es:')
 print(np.amin(RTA))
 
-#ax = sns.heatmap(RTA)
+# ==============================================================================
+# Plotting the solution for visual check
+# ==============================================================================
 
-#x = np.arange(Nx)
-#y = np.arange(Ny)
-#X, Y = np.meshgrid(x, y)
-#plt.contourf(X, Y, RTA)
+x = np.arange(Nx)
+y = np.arange(Ny)
+X, Y = np.meshgrid(x, y)
+CS4 = plt.contourf(X, Y, RTA)
+cbar = plt.colorbar(CS4)
 #plt.clabel(CS4, fmt='%2.1f', colors='w', fontsize=14)
-#plt.show()
-
-plt.imshow(RTA, cmap='hot', interpolation='nearest')
 plt.show()
-
