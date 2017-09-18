@@ -8,6 +8,7 @@ Created on Tue Sep 12 10:11:10 2017
 
 import numpy as np
 import scipy.sparse as scsp
+import scipy.io 
 import matplotlib.pyplot as plt
 from FDM_Auxiliar import alt_media, fill_tbc, fill_bbc, fill_rbc, fill_lbc
 from FDM_Auxiliar import positions, nzero, RHS_build, LHS_build
@@ -26,15 +27,15 @@ d = 0.20            # Mean depth of flow
 
 Lx = 1.00           # Length of the flume (m) (considered for numerical model) 
 Ly = 1.00           # Depth of bed (m)
-Lambda = 0.60        # Wavelength of bedform (m)
+Lambda = 0.60       # Wavelength of bedform (m)
 Dif = 1.0           # Diffusion coefficient (just for fun)
 
 # =============================================================================
 # Numerical model input parameters
 # =============================================================================
 
-Nx = 8           # Nodes in x direction (number)
-Ny = 8           # Nodes in y direction  (number)
+Nx = 4              # Nodes in x direction (number)
+Ny = 4              # Nodes in y direction  (number)
 
 # =============================================================================
 # Calculate hm value for the problem assigned and set a vector for the 
@@ -78,9 +79,11 @@ RHS = RHS_build(Tbc, Bbc, Lbc, Rbc)
 
 LHS = LHS_build(Nx, Ny, dx, dy, Dif)
 LHS = LHS.tocsr()
+scipy.io.mmwrite('matrix_test', LHS)
 
 # Checking matrix construction
-# plt.spy(LHS, markersize = 4)
+plt.spy(LHS, markersize = 4)
+plt.show()
 
 # =============================================================================
 # Solving linear system for the pressure field (Laplace's equation)
