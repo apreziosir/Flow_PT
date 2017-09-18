@@ -61,10 +61,10 @@ def fill_tbc(Lx, Nx, hm, Lambda):
     for i in range(0, len(Tbc)):
         
         # Real function - should work if test function works
-#        Tbc[i] = hm * np.sin(k * i * dx)
+        Tbc[i] = hm * np.sin(k * i * dx)
         
         # Test function - just to test the program under known conditions
-        Tbc[i] = 7 * (i * dx) 
+#        Tbc[i] = 7 * (i * dx) 
         
         # Test function 2
 #        Tbc[i] = i * dx
@@ -80,12 +80,12 @@ def fill_bbc(Tbc, Nx, Lx, Ly):
     
     Bbc = np.zeros(Nx)
     dx = Lx / (Nx - 1)
-#    Bbc = Tbc + Ly    # Defining vector
+    Bbc = Tbc + Ly    # Defining vector
     
 #   Test case 
-    for i in range(0, len(Bbc)):
+#    for i in range(0, len(Bbc)):
         # Test case 1
-        Bbc[i] = 6 * Ly * (i * dx) + 7 * (i * dx) + 8 * Ly
+#        Bbc[i] = 6 * Ly * (i * dx) + 7 * (i * dx) + 8 * Ly
         
         # Test case 2
 #        Bbc[i] = Ly + i * dx
@@ -103,12 +103,12 @@ def fill_lbc(Ly, Ny, Tbc):
     
     for i in range(0, len(Lbc)):
         # Hydrostatic increment of pressure in the left boundary
-#        Lbc[i] = Tbc + (i + 1) * dy 
+        Lbc[i] = Tbc + (i + 1) * dy 
         # Constant value of pressure left boundary
         # Lbc[i] = Tbc
         
         # Test function - just to test the program under known conditions
-        Lbc[i] = 8 * dy * (i + 1)
+#        Lbc[i] = 8 * dy * (i + 1)
         
         # Test case 2
 #        Lbc[i] = (i + 1) * dy
@@ -126,12 +126,12 @@ def fill_rbc(Lx, Ly, Ny, Tbc):
     
     for i in range(0, len(Rbc)):
         # Hydrostatic increment of pressure in the left boundary
-#        Rbc[i] = Tbc + (i + 1) * dy 
+        Rbc[i] = Tbc + (i + 1) * dy 
         # Constant value of pressure left boundary
         # Rbc[i] = Tbc
         
         # Test function - just to test the program under known conditions
-        Rbc[i] = 6 * Lx * (i + 1) * dy + 7 * Lx + 8 * (i + 1) * dy
+#        Rbc[i] = 6 * Lx * (i + 1) * dy + 7 * Lx + 8 * (i + 1) * dy
         
         # Test case 2
 #        Rbc[i] = Lx + (i + 1) * dy
@@ -202,7 +202,7 @@ def LHS_build(Nx, Ny, dx, dy, Dif):
     aE_aW = -(Dif / (dx ** 2)) 
     aN_aS = -(Dif / (dy ** 2))
     aP = - 2 * (aE_aW + aN_aS) 
-    print(aP)
+#    print(aP)
     
     # Elementos de la diagonal mayor de la matriz LHS
     Diag_d = np.ones(Nx * Ny)
@@ -226,8 +226,8 @@ def LHS_build(Nx, Ny, dx, dy, Dif):
         
         # Probando condiciones para poder hacer el llenado de los vectores de 
         # posiciones de los índices en parte interna. 
-        print('voy en.....')
-        print(i)
+#        print('voy en.....')
+#        print(i)
         
         if i % Nx != 0 and i % Nx != (Nx - 1):
             
@@ -243,13 +243,14 @@ def LHS_build(Nx, Ny, dx, dy, Dif):
             Diag2_j[i1] = i + 1
 #            print(Diag2_j)
             Diag3_i[i0] = i
-            Diag3_j[i1] = i
+            Diag3_i[i1] = i
+#            print(Diag3_i)
             Diag3_j[i0] = i - Nx
             Diag3_j[i1] = i + Nx
             i0 += 2
             i1 += 2
     
-    print(Diag_d)
+#    print(Diag_d)
     # Ensamblando vectores de datos para la matriz 
     LHS_data = np.concatenate((Diag_d, Diag2_d, Diag3_d), axis=0)
     np.savetxt('dataLHS.csv', LHS_data)
