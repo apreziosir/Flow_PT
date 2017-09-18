@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Solver de Laplace con diferencias finitas - Se hace con matrices eficientes
+Incluye el calculo de la red de flujo con los valores de presion.
 Created on Tue Sep 12 10:11:10 2017
 @author: apreziosir
 """
@@ -11,7 +12,8 @@ import scipy.sparse as scsp
 import scipy.io 
 import matplotlib.pyplot as plt
 from FDM_Auxiliar import alt_media, fill_tbc, fill_bbc, fill_rbc, fill_lbc
-from FDM_Auxiliar import positions, nzero, RHS_build, LHS_build
+from FDM_Auxiliar import positions, nzero, RHS_build, LHS_build, comp
+from Velocity_prof import gw_vel
 
 # =============================================================================
 # Input variables - flow conditions
@@ -26,7 +28,7 @@ d = 0.20            # Mean depth of flow
 # =============================================================================
 
 Lx = 6.00           # Length of the flume (m) (considered for numerical model) 
-Ly = 0.25           # Depth of bed (m)
+Ly = 0.35           # Depth of bed (m)
 Lambda = 0.60       # Wavelength of bedform (m)
 Dif = 1.0           # Diffusion coefficient (just for fun)
 
@@ -103,15 +105,30 @@ print(np.amax(RTA))
 print('El valor mínimo de RTA es:')
 print(np.amin(RTA))
 
-# ==============================================================================
+# =============================================================================
 # Plotting the solution for visual check
-# ==============================================================================
+# =============================================================================
 
-x = np.arange(Nx)
-y = np.arange(Ny)
+x = np.linspace(0, Lx, Nx)
+y = np.linspace(0, Ly, Ny)
 X, Y = np.meshgrid(x, y)
-CS4 = plt.contourf(X, Y, RTA)
+CS4 = plt.contourf(X, Y, 100 * RTA)
 cbar = plt.colorbar(CS4)
+plt.gca().set_aspect(9, adjustable='box')
+plt.ylim((Ly, 0))
 #cbar.Normalize(clip=False)
 #plt.clabel(CS4, fmt='%2.1f', colors='w', fontsize=14)
 plt.show()
+
+# =============================================================================
+# Comparing with test functions values (just for test cases, not real 
+# conditions)
+# =============================================================================
+
+#err = comp(RTA)
+
+
+# =============================================================================
+# Calculating the velocity field with Darcy's law q = K grad(h)
+# =============================================================================
+

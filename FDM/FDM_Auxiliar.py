@@ -187,6 +187,7 @@ def RHS_build(Tbc, Bbc, Lbc, Rbc):
             zblock[-1] = -Rbc[i - 1]
             rhs[ind:ind + Nx] = zblock
             
+    print(rhs)
     return rhs
     
 # =============================================================================
@@ -264,3 +265,13 @@ def LHS_build(Nx, Ny, dx, dy, Dif):
                        (Nx * Ny)))
     
     return lhs
+
+# =============================================================================
+# Comparison with theoretical functions (just for test cases, not for real 
+# case)
+# =============================================================================
+    
+def comp(RTA):
+    
+    
+    return err
