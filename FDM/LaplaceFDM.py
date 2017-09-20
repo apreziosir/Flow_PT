@@ -20,24 +20,24 @@ from Velocity_prof import gw_vel
 # =============================================================================
 
 U = 0.35            # Mean flow velocity in m/s
-H = 0.05            # Dune height
+H = 0.015            # Dune height
 d = 0.20            # Mean depth of flow
 
 # =============================================================================
 # Input variables - domain and bed characteristics
 # =============================================================================
 
-Lx = 6.00           # Length of the flume (m) (considered for numerical model) 
-Ly = 0.35           # Depth of bed (m)
-Lambda = 0.60       # Wavelength of bedform (m)
+Lx = 6.40           # Length of the flume (m) (considered for numerical model) 
+Ly = -0.20           # Depth of bed (m)
+Lambda = 0.30       # Wavelength of bedform (m)
 Dif = 1.0           # Diffusion coefficient (just for fun)
 
 # =============================================================================
 # Numerical model input parameters
 # =============================================================================
 
-Nx = 9              # Nodes in x direction (number)
-Ny = 9              # Nodes in y direction  (number)
+Nx = 6              # Nodes in x direction (number)
+Ny = 6              # Nodes in y direction  (number)
 
 # =============================================================================
 # Calculate hm value for the problem assigned and set a vector for the 
@@ -91,6 +91,9 @@ plt.show()
 # Solving linear system for the pressure field (Laplace's equation)
 # =============================================================================
 
+# Gradiente con jugado - no esta funcionando
+#P = scsp.linalg.cg(LHS, RHS)
+
 P = scsp.linalg.spsolve(LHS, RHS)
 
 # =============================================================================
@@ -105,6 +108,9 @@ print(np.amax(RTA))
 print('El valor mínimo de RTA es:')
 print(np.amin(RTA))
 
+print('El valor de RTA es... ')
+print(RTA)
+
 # =============================================================================
 # Plotting the solution for visual check
 # =============================================================================
@@ -112,7 +118,7 @@ print(np.amin(RTA))
 x = np.linspace(0, Lx, Nx)
 y = np.linspace(0, Ly, Ny)
 X, Y = np.meshgrid(x, y)
-CS4 = plt.contourf(X, Y, 100 * RTA)
+CS4 = plt.contourf(X, Y, RTA)
 cbar = plt.colorbar(CS4)
 plt.gca().set_aspect(9, adjustable='box')
 plt.ylim((Ly, 0))
@@ -125,8 +131,16 @@ plt.show()
 # conditions)
 # =============================================================================
 
-#err = comp(RTA)
+err = comp(RTA, Nx, Ny, Lx, Ly)
+#CS5 = plt.contourf(X, Y, err)
+#cbar = plt.colorbar(CS5)
+#plt.gca().set_aspect(9, adjustable='box')
+#plt.ylim((Ly, 0))
+#plt.show()
 
+# Guardando archivos para comparar en csv
+np.savetxt('sol_numerica.csv', RTA, delimiter=' ', newline='\n')
+np.savetxt('sol_analit.csv', err, delimiter=' ', newline='\n')
 
 # =============================================================================
 # Calculating the velocity field with Darcy's law q = K grad(h)

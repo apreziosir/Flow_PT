@@ -9,6 +9,8 @@ condiciones de contorno tipo Dirichlet impuestas
 
 import numpy as np
 import scipy.sparse as scsp
+import os
+import matplotlib.pyplot as plt
 
 # =============================================================================
 # Function that calculates nonzero elements using just Nx and Ny
@@ -54,21 +56,24 @@ def alt_media(U, H, d):
     
 def fill_tbc(Lx, Nx, hm, Lambda):
     
-    Tbc = np.linspace(0, Lx, Nx)        # Defining vector
+    Tbc = np.linspace(0, Lx, Nx)            # Defining vector
     k = 2 * np.pi / Lambda                  # Defining k
-    dx = Lx / (Nx - 1)                      # Calculating dx
+    dx = np.abs(Lx / (Nx - 1))              # Calculating dx
     
     for i in range(0, len(Tbc)):
         
         # Real function - should work if test function works
-        Tbc[i] = hm * np.sin(k * i * dx)
+#        Tbc[i] = hm * np.sin(k * (i * dx))
         
         # Test function - just to test the program under known conditions
-#        Tbc[i] = 7 * (i * dx) 
+        Tbc[i] = 7 * (i * dx) 
         
         # Test function 2
 #        Tbc[i] = i * dx
-        
+    
+#   Este pedazo imprime la condicion de contorno para comprobar su 
+#   funcionamiento 
+    print(Tbc)    
     return Tbc
 
 # =============================================================================
@@ -79,13 +84,13 @@ def fill_tbc(Lx, Nx, hm, Lambda):
 def fill_bbc(Tbc, Nx, Lx, Ly):
     
     Bbc = np.zeros(Nx)
-    dx = Lx / (Nx - 1)
-    Bbc = Tbc + Ly    # Defining vector
+    dx = np.abs(Lx / (Nx - 1))
+#    Bbc = Tbc - Ly    # Defining vector
     
 #   Test case 
-#    for i in range(0, len(Bbc)):
+    for i in range(0, len(Bbc)):
         # Test case 1
-#        Bbc[i] = 6 * Ly * (i * dx) + 7 * (i * dx) + 8 * Ly
+        Bbc[i] = 6 * Ly * (i * dx) + 7 * (i * dx) + 8 * Ly
         
         # Test case 2
 #        Bbc[i] = Ly + i * dx
@@ -98,17 +103,17 @@ def fill_bbc(Tbc, Nx, Lx, Ly):
     
 def fill_lbc(Ly, Ny, Tbc):
     
-    dy = Ly / (Ny - 1)
+    dy = np.abs(Ly / (Ny - 1))
     Lbc = np.zeros(Ny - 2)    
     
     for i in range(0, len(Lbc)):
         # Hydrostatic increment of pressure in the left boundary
-        Lbc[i] = Tbc + (i + 1) * dy 
+#        Lbc[i] = Tbc + (i + 1) * dy 
         # Constant value of pressure left boundary
         # Lbc[i] = Tbc
         
         # Test function - just to test the program under known conditions
-#        Lbc[i] = 8 * dy * (i + 1)
+        Lbc[i] = 8 * dy * (i + 1)
         
         # Test case 2
 #        Lbc[i] = (i + 1) * dy
@@ -122,16 +127,16 @@ def fill_lbc(Ly, Ny, Tbc):
 def fill_rbc(Lx, Ly, Ny, Tbc):
     
     Rbc = np.zeros(Ny - 2)
-    dy = Ly / Ny
+    dy = np.abs(Ly / Ny)
     
     for i in range(0, len(Rbc)):
         # Hydrostatic increment of pressure in the left boundary
-        Rbc[i] = Tbc + (i + 1) * dy 
+#        Rbc[i] = Tbc + (i + 1) * dy 
         # Constant value of pressure left boundary
         # Rbc[i] = Tbc
         
         # Test function - just to test the program under known conditions
-#        Rbc[i] = 6 * Lx * (i + 1) * dy + 7 * Lx + 8 * (i + 1) * dy
+        Rbc[i] = 6 * Lx * (i + 1) * dy + 7 * Lx + 8 * (i + 1) * dy
         
         # Test case 2
 #        Rbc[i] = Lx + (i + 1) * dy
@@ -186,8 +191,10 @@ def RHS_build(Tbc, Bbc, Lbc, Rbc):
             zblock[0] = -Lbc[i - 1]
             zblock[-1] = -Rbc[i - 1]
             rhs[ind:ind + Nx] = zblock
-            
-    print(rhs)
+
+#   Este pedazo se descomenta cuando se necesite ver que el vector del lado 
+#   derecho está bien construido o no            
+#    print(rhs)
     return rhs
     
 # =============================================================================
@@ -271,7 +278,33 @@ def LHS_build(Nx, Ny, dx, dy, Dif):
 # case)
 # =============================================================================
     
-def comp(RTA):
+def comp(RTA, Nx, Ny, Lx, Ly):
     
+    # Generando espacio para la solucion
+    x = np.linspace(0, Lx, Nx)
+    y = np.linspace(Ly, 0, Ny)
+    X, Y = np.meshgrid(x, y)
+    
+    # Calculo de matriz respuesta analítica de la primera funcion de prueba
+    # 6xy +7x + 8y
+    z = 6 * X * Y + 7 * X + 8 * Y
+    
+    err = z
+    
+#    # Calculo de la matriz de respuesta analitica de la segunda funcion de 
+#    # prueba x + y
+#    z = X + Y
+#    
+#    err = RTA - z
+    
+    # Imprimiendo en pantalla el valor de la solucion analitica
+    print('El valor de la respuesta analitica es... ')
+    print(z)
+    
+    # Plotting the analytical solution
+    CS = plt.contourf(X, Y, z)
+    cbar = plt.colorbar(CS)
+    plt.gca().set_aspect(9, adjustable='box')
+    plt.ylim((Ly, 0))
     
     return err
