@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Solver de Laplace con diferencias finitas - Se hace con matrices eficientes
-Incluye el calculo de la red de flujo con los valores de presion.
+Incluye el calculo de la red de flujo con los valores de presion (gradiente del 
+campo escalar de presiones)
 Created on Tue Sep 12 10:11:10 2017
 @author: apreziosir
 """
@@ -11,24 +12,30 @@ import numpy as np
 import scipy.sparse as scsp
 import scipy.io 
 import matplotlib.pyplot as plt
-from FDM_Auxiliar import alt_media, fill_tbc, fill_bbc, fill_rbc, fill_lbc
-from FDM_Auxiliar import positions, nzero, RHS_build, LHS_build, comp
+from Exp_cond import alt_media, inf_vel
+from Bound_cond import fill_tbc, fill_bbc, fill_bbc_N, fill_rbc, fill_lbc
+from FDM_Auxiliar import positions, nzero, comp  
+from Builder import RHS_build, LHS_build 
 from Velocity_prof import gw_vel
 
 # =============================================================================
 # Input variables - flow conditions
 # =============================================================================
 
-U = 0.35            # Mean flow velocity in m/s
-H = 0.015            # Dune height
-d = 0.20            # Mean depth of flow
+U = 0.35                    # Mean flow velocity in m/s
+H = 0.015                   # Dune height
+d = 0.20                    # Mean depth of flow
+phi = 0.33                  # Porosity of material
+q = 0.15                    # Inflow or downflow velocity (+ up / - down)
+K = 0.1195                  # Hydraulic conductivity
+Neum = False                # Neumann condition at the bottom?
 
 # =============================================================================
 # Input variables - domain and bed characteristics
 # =============================================================================
 
 Lx = 6.40           # Length of the flume (m) (considered for numerical model) 
-Ly = -0.20           # Depth of bed (m)
+Ly = 0.20           # Depth of bed (m)
 Lambda = 0.30       # Wavelength of bedform (m)
 Dif = 1.0           # Diffusion coefficient (just for fun)
 
@@ -39,24 +46,27 @@ Dif = 1.0           # Diffusion coefficient (just for fun)
 Nx = 6              # Nodes in x direction (number)
 Ny = 6              # Nodes in y direction  (number)
 
+# Set up mesh - function that calculates everything
+dx = Lx / (Nx - 1)
+dy = Ly / (Ny - 1)
+
 # =============================================================================
-# Calculate hm value for the problem assigned and set a vector for the 
-# boundary condition values - outside functions
+# Calculate hm value for the problem assigned, inflow Darcy velocity and set 
+# a vector for the boundary condition values - outside functions
 # =============================================================================
 
 hm = alt_media(U, H, d)
+
+if Neum == True : v = inf_vel(phi, q, K)
 Tbc = fill_tbc(Lx, Nx, hm, Lambda)
-Bbc = fill_bbc(Tbc, Nx, Lx, Ly)
+if Neum == False : Bbc = fill_bbc(Tbc, Nx, Lx, Ly)
+else : Bbc = fill_bbc_N(Nx, Dif, q, dy, K)
 Lbc = fill_lbc(Ly, Ny, Tbc[0])
 Rbc = fill_rbc(Lx, Ly, Ny, Tbc[Nx - 1])
 
 # =============================================================================
 # Node positions - mesh generation
 # =============================================================================
-
-# Set up mesh - function that calculates everything
-dx = Lx / (Nx - 1)
-dy = Ly / (Ny - 1)
 
 # Matrix with nodes ID's and positions
 xn = positions(Lx, Ly, Nx, Ny)
@@ -65,11 +75,12 @@ xn = positions(Lx, Ly, Nx, Ny)
 # Calculating the number of nonzero elements in matrix
 # =============================================================================
 
-nzero(Nx, Ny)
+nzero(Nx, Ny, Neum)
 
 # =============================================================================
 # Building RHS of system to solve Laplace Equation 
-# (Results vector)
+# (Results vector) - This vector is built the same way if there is a Dirichlet
+# or Neumann BC since it is just a vector
 # =============================================================================
 
 RHS = RHS_build(Tbc, Bbc, Lbc, Rbc)
@@ -93,7 +104,6 @@ plt.show()
 
 # Gradiente con jugado - no esta funcionando
 #P = scsp.linalg.cg(LHS, RHS)
-
 P = scsp.linalg.spsolve(LHS, RHS)
 
 # =============================================================================
