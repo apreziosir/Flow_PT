@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from Exp_cond import alt_media, inf_vel
 from Bound_cond import fill_tbc, fill_bbc, fill_bbc_N, fill_rbc, fill_lbc
 from FDM_Auxiliar import positions, nzero, comp  
-from Builder import RHS_build, LHS_build 
+from Builder import RHS_build, LHS_build, LHS_build_N 
 from Velocity_prof import gw_vel
 
 # =============================================================================
@@ -90,7 +90,8 @@ RHS = RHS_build(Tbc, Bbc, Lbc, Rbc)
 # Coordinate system storage - Later transformed to CSR (by Python script)
 # =============================================================================
 
-LHS = LHS_build(Nx, Ny, dx, dy, Dif)
+if Neum == False : LHS = LHS_build(Nx, Ny, dx, dy, Dif)
+else : LHS = LHS_build_N(Nx, Ny, dx, dy, Dif)
 LHS = LHS.tocsr()
 scipy.io.mmwrite('matrix_test', LHS)
 
@@ -111,6 +112,8 @@ P = scsp.linalg.spsolve(LHS, RHS)
 # =============================================================================
 
 RTA = np.reshape(P, (Ny, Nx), order='C')
+
+np.set_printoptions(formatter={'float': '{: 0.4f}'.format})
 
 print('El valor máximo de RTA es:')
 print(np.amax(RTA))
