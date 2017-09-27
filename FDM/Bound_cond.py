@@ -44,7 +44,7 @@ def fill_bbc(Tbc, Nx, Lx, Ly):
     
     Bbc = np.zeros(Nx)
     dx = np.abs(Lx / (Nx - 1))
-    Bbc = Tbc - Ly    # Defining vector
+    Bbc = Tbc - np.abs(Ly)    # Defining vector
     
 #   Test case 
 #    for i in range(0, len(Bbc)):
