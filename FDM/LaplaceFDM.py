@@ -26,7 +26,7 @@ U = 0.35                    # Mean flow velocity in m/s
 H = 0.015                   # Dune height
 d = 0.20                    # Mean depth of flow
 phi = 0.33                  # Porosity of material
-q = 0.15                    # Inflow or downflow velocity (+ up / - down)
+q = 0.0                     # Inflow or downflow velocity (+ up / - down)
 K = 0.1195                  # Hydraulic conductivity
 Neum = False                # Neumann condition at the bottom?
 
@@ -43,12 +43,12 @@ Dif = 1.0           # Diffusion coefficient (just for fun)
 # Numerical model input parameters
 # =============================================================================
 
-Nx = 6              # Nodes in x direction (number)
-Ny = 6              # Nodes in y direction  (number)
+Nx = 40              # Nodes in x direction (number)
+Ny = 40              # Nodes in y direction  (number)
 
 # Set up mesh - function that calculates everything
-dx = Lx / (Nx - 1)
-dy = Ly / (Ny - 1)
+dx = np.abs(Lx / (Nx - 1))
+dy = np.abs(Ly / (Ny - 1))
 
 # =============================================================================
 # Calculate hm value for the problem assigned, inflow Darcy velocity and set 
@@ -115,6 +115,7 @@ RTA = np.reshape(P, (Ny, Nx), order='C')
 
 np.set_printoptions(formatter={'float': '{: 0.4f}'.format})
 
+print('*---------------------------*')
 print('El valor máximo de RTA es:')
 print(np.amax(RTA))
 
@@ -123,6 +124,7 @@ print(np.amin(RTA))
 
 print('El valor de RTA es... ')
 print(RTA)
+print('*---------------------------*')
 
 # =============================================================================
 # Plotting the solution for visual check
@@ -144,16 +146,16 @@ plt.show()
 # conditions)
 # =============================================================================
 
-err = comp(RTA, Nx, Ny, Lx, Ly)
-#CS5 = plt.contourf(X, Y, err)
-#cbar = plt.colorbar(CS5)
-#plt.gca().set_aspect(9, adjustable='box')
-#plt.ylim((Ly, 0))
-#plt.show()
-
-# Guardando archivos para comparar en csv
-np.savetxt('sol_numerica.csv', RTA, delimiter=' ', newline='\n')
-np.savetxt('sol_analit.csv', err, delimiter=' ', newline='\n')
+#err = comp(RTA, Nx, Ny, Lx, Ly)
+##CS5 = plt.contourf(X, Y, err)
+##cbar = plt.colorbar(CS5)
+##plt.gca().set_aspect(9, adjustable='box')
+##plt.ylim((Ly, 0))
+##plt.show()
+#
+## Guardando archivos para comparar en csv
+#np.savetxt('sol_numerica.csv', RTA, delimiter=' ', newline='\n')
+#np.savetxt('sol_analit.csv', err, delimiter=' ', newline='\n')
 
 # =============================================================================
 # Calculating the velocity field with Darcy's law q = K grad(h)

@@ -86,7 +86,7 @@ def LHS_build(Nx, Ny, dx, dy, Dif):
     cff = coeff(Dif, dx, dy)
     
     # Elementos de la diagonal mayor de la matriz LHS
-    Diag_d = np.ones(Nx * Ny)
+    Diag_d = np.ones(Nx * Ny) * -1
     Diag_i = np.arange(0, (Nx * Ny), 1)
     Diag_j = np.arange(0, (Nx * Ny), 1)
     
@@ -162,7 +162,7 @@ def LHS_build_N(Nx, Ny, dx, dy, Dif):
     cff = coeff(Dif, dx, dy) 
     
     # Elementos de la diagonal mayor de la matriz LHS
-    Diag_d = np.ones(Nx * Ny)
+    Diag_d = np.ones(Nx * Ny) * -1
     Diag_i = np.arange(0, (Nx * Ny), 1)
     Diag_j = np.arange(0, (Nx * Ny), 1)
     
@@ -212,10 +212,45 @@ def LHS_build_N(Nx, Ny, dx, dy, Dif):
     # Esta sección llena el final de los vectores de Diag_3, donde se almacenan
     # los valores y coordenadas de cada una de las filas que hacen la condicion
     # de contorno de Neumann en la matriz
-    Diag3_d[-Nx:] =  
-    Diag3_i[-Nx:] =
-    Diag3_i[-Nx:] =
-        
+    
+    # Impresion antes del llenado de la ultima parte de Diag3
+#    print('*--------*')
+#    print(Diag3_d.shape)
+#    print(Diag3_i.shape)
+#    print(Diag3_j.shape)
+#    print('*--------*')
+#    print(Diag3_d)
+#    print(Diag3_i)
+#    print(Diag3_j)
+#    print('*--------*')
+    
+    # Corregir este pedazo para poder escribir bien la matriz
+    Fn = Nx * (Ny - 1)
+    Ln = (Nx * Ny) - 1
+    Diag3_d[-Nx:] =  -2 * cff[2]
+    Diag3_i[-Nx:] = np.linspace(Fn, Ln, Nx)
+    Diag3_j[-Nx:] = np.linspace(Fn - Nx, Ln - Nx, Nx)
+    
+    
+    # Pruebas de impresión en pantalla de la ultima parte de los arreglos que 
+    # hacen parte de las diferencias verticales
+#    print('*--------*')
+#    print(Diag3_d.shape)
+#    print(Diag3_i.shape)
+#    print(Diag3_j.shape)
+#    print('*--------*')
+#    print(Diag3_d)
+#    print(Diag3_i)
+#    print(Diag3_j)
+#    print('*--------*')
+    
+    # Ensamblando vectores de datos para la matriz 
+    LHS_data = np.concatenate((Diag_d, Diag2_d, Diag3_d), axis=0)
+    np.savetxt('dataLHS.csv', LHS_data)
+    LHS_i = np.concatenate((Diag_i, Diag2_i, Diag3_i), axis=0)
+    np.savetxt('iLHS.csv', LHS_i)
+    LHS_j = np.concatenate((Diag_j, Diag2_j, Diag3_j), axis=0)
+    np.savetxt('jLHS', LHS_j)    
     
     # Ensambalndo matriz en formato coordenado    
     lhs = scsp.coo_matrix((LHS_data, (LHS_i, LHS_j)), shape = ((Nx * Ny), 
