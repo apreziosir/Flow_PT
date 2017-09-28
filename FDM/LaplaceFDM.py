@@ -14,6 +14,7 @@ import scipy.io
 import matplotlib.pyplot as plt
 from Exp_cond import alt_media, inf_vel
 from Bound_cond import fill_tbc, fill_bbc, fill_bbc_N, fill_rbc, fill_lbc
+from Bound_cond import fill_lbc_N
 from FDM_Auxiliar import positions, nzero, comp  
 from Builder import RHS_build, LHS_build, LHS_build_N 
 from Velocity_prof import gw_vel
@@ -22,13 +23,14 @@ from Velocity_prof import gw_vel
 # Input variables - flow conditions
 # =============================================================================
 
-U = 0.35                    # Mean flow velocity in m/s
+U = 0.15                    # Mean flow velocity in m/s
 H = 0.015                   # Dune height
 d = 0.10                    # Mean depth of flow
 phi = 0.33                  # Porosity of material
 q = -0.00015                     # Inflow or downflow velocity (+ up / - down)
 K = 0.1195                  # Hydraulic conductivity
-Neum = True                # Neumann condition at the bottom?
+Neum = True                 # Neumann condition at the bottom?
+N_LR = False                # Neumann condition in the sides?
 
 # =============================================================================
 # Input variables - domain and bed characteristics
@@ -43,8 +45,8 @@ Dif = 1.0           # Diffusion coefficient (just for fun)
 # Numerical model input parameters
 # =============================================================================
 
-Nx = 400              # Nodes in x direction (number)
-Ny = 100              # Nodes in y direction  (number)
+Nx = 10              # Nodes in x direction (number)
+Ny = 10              # Nodes in y direction  (number)
 
 # Set up mesh - function that calculates everything
 dx = np.abs(Lx / (Nx - 1))
@@ -57,12 +59,18 @@ dy = np.abs(Ly / (Ny - 1))
 
 hm = alt_media(U, H, d)
 
+# Top
 if Neum == True : v = inf_vel(phi, q, K)
 Tbc = fill_tbc(Lx, Nx, hm, Lambda)
+# Bottom
 if Neum == False : Bbc = fill_bbc(Tbc, Nx, Lx, Ly)
 else : Bbc = fill_bbc_N(Nx, Dif, q, dy, K)
-Lbc = fill_lbc(Ly, Ny, Tbc[0])
-Rbc = fill_rbc(Lx, Ly, Ny, Tbc[Nx - 1])
+# Left
+if N_LR == False : Lbc = fill_lbc(Ly, Ny, Tbc[0])
+else : Lbc = fill_lbc_N(Ny)
+# Right
+if N_LR == False : Rbc = fill_rbc(Lx, Ly, Ny, Tbc[Nx - 1])
+else : Rbc = fill_lbc_N(Ny)
 
 # =============================================================================
 # Node positions - mesh generation

@@ -44,7 +44,7 @@ def fill_bbc(Tbc, Nx, Lx, Ly):
     
     Bbc = np.zeros(Nx)
     dx = np.abs(Lx / (Nx - 1))
-    Bbc = Tbc - np.abs(Ly)    # Defining vector
+    Bbc = Tbc + np.abs(Ly)    # Defining vector
     
 #   Test case 
 #    for i in range(0, len(Bbc)):
@@ -87,6 +87,17 @@ def fill_lbc(Ly, Ny, Tbc):
         # Test case 2
 #        Lbc[i] = (i + 1) * dy
         
+    return Lbc
+
+# ==============================================================================
+# Filling left boundary condition when there is a V. Neumann imposed with no 
+# flow at the boundaries u = 0, v = 0
+# ==============================================================================
+
+def fill_lbc_N(Ny):
+    
+    Lbc = np. zeros(Ny - 2)
+    
     return Lbc
 
 # =============================================================================
