@@ -38,9 +38,9 @@ def fill_tbc(Len, Num, delta, hm, Lambda):
 # Fill the Bottom Bbc vector with Neumann Boundary condition
 # =============================================================================
     
-def fill_bbc_N(Nx, Dif, q, dy, K):
+def fill_bbc_N(Num, delta, q, K):
     
-    Bbc = np.ones(Nx) * (2 * Dif * q) / (dy * K)  
+    Bbc = np.ones(Num[0]) * (delta[1] * q) / K  
     
     return Bbc
 

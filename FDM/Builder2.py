@@ -32,43 +32,111 @@ def build_top(Nx, Ny):
 # and are losing, gaining or null fluxes
 # ==============================================================================
     
-def build_bot(Nx):
+def build_bot(Num, delta, coef):
     
     # This part builds the bottom of the domain, but it is the top part of the 
     # matrix since the nodes are numbered from bottom to top
     # Defining matrix in order to take out all the values generated in the 
     # function
-       
+    Bott = np.zeros((3, 2 * Num[0]))
+    Bott[0,0:Nx] = np.ones(Num[0]) 
+    Bott[0,-Nx:] = -np.ones(Num[0]) 
+    Bott[1,:] = np.tile(np.linspace(0, Num[0] - 1, Num[0]), 2)
+    Bott[2,:] = np.tile(np.linspace(0 + Num[0], 2 * Num[0] - 1, Num[0]), 2)
+    
     
     return Bott
+
+# ==============================================================================
+# Building the left BC - Dirichlet case (this is a first approach and has to be 
+# modified for modelling purposes)
+# ==============================================================================
+    
+def build_left(Num):
+    
+    Left = np.zeros((3, Num[1] - 2))    
+    Left[0,:] = np.ones(Num[1] - 2)
+    Left[1,:] = np.arange(Num[0], Num[0] - 1, Num[0])
+    Left[2,:] = np.arange(Num[0], Num[0] - 1, Num[0])    
+    
+    return Left
+
+# ==============================================================================
+# Building the left BC - Neumann case (this is one of the assumptions of our 
+# model)
+# ==============================================================================
+    
+def build_left_N(Num):
+    
+    Left = np.zeros((3, Num[1] - 2))    
+    Left[0,:] = np.ones(Num[1] - 2)
+    Left[1,:] = np.arange(Num[0], Num[0] - 1, Num[0])
+    Left[2,:] = np.arange(Num[0], Num[0] - 1, Num[0])    
+    
+    return Left
+
+# ==============================================================================
+# Building the right BC - Dirichlet case (this is a first approach and has to be 
+# modified for modelling purposes)
+# ==============================================================================
+    
+def build_right(Num):
+    
+    Right = np.zeros((3, Num[1] - 2))    
+    Right[0,:] = np.ones(Num[1] - 2)
+    Right[1,:] = np.arange(Num[0], Num[0] - 1, Num[0])
+    Right[2,:] = np.arange(Num[0], Num[0] - 1, Num[0])    
+    
+    return Right
+
+# ==============================================================================
+# Building the right BC - Neumann case (this is one of the assumptions of our 
+# model)
+# ==============================================================================
+    
+def build_right_N(Num):
+    
+    Right = np.zeros((3, Num[1] - 2))    
+    Right[0,:] = np.ones(Num[1] - 2)
+    Right[1,:] = np.arange(Num[0], Num[0] - 1, Num[0])
+    Right[2,:] = np.arange(Num[0], Num[0] - 1, Num[0])    
+    
+    return Right
+
 # ==============================================================================
 # General matrix builder - builds all kind of matrices
 # ==============================================================================
 
-def gen_build(Nx, Ny, Lx, Ly, Diff, Neum, N_LR):
+def gen_build(Num, Len, delta, coef, N_LR):
     
     # Building top vectors (data, i, j)
-    T = build_top(Nx, Ny)
+    T = build_top(Num)
     Top_d = T[0,:]
     Top_i = T[1,:]
     Top_j = T[2,:]
     
     # Building bottom nodes vectors (data, i, j)
-    Bot_d = 
-    Bot_i = 
-    Bot_j = 
+    B = build_bot(Num, Diff, delta)
+    Bot_d = B[0,:]
+    Bot_i = B[1,:]
+    Bot_j = B[2,:]
     
     # Building left nodes vectors (data, i, j)
-    Lft_d = 
-    Lft_i = 
-    Lft_j = 
+    if N_LR == False : L = build_left(Num)
+    else : L = build_left_N(Num)
+    Lft_d = L[0,:]
+    Lft_i = L[1,:]
+    Lft_j = L[2,:]
     
     # Building right nodes vectors (data, i, j)
-    Rgh_d = 
-    Rgh_i = 
-    Rgh_j = 
+    if N_LR == False : R = build_left(Num)
+    else : R = build_left_N(Num)
+    Rgh_d = R[0,:]
+    Rgh_i = R[1,:]
+    Rgh_j = R[2,:]
 
     # Building internal nodes vectors (data, i, j)    
+    I = build_int()
     Int_d = 
     Int_i =
     Int_j = 

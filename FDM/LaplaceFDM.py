@@ -62,10 +62,14 @@ Num = np.zeros(2)
 Num[0] = Nx
 Num[1] = Ny
 
+# Calculating delta_x and delta_y for the matrix
 delta = FDMAux.dx_dy(Lx, Nx, Ly, Ny)
 
 # Node positions with id for follow up
 xn = FDMAux.positions(Lx, Ly, Nx, Ny)
+
+# Calculating coefficients for matrix
+coef = FDMAux.coeff(Dif, delta)
 
 # =============================================================================
 # Calculate hm value for the problem assigned, inflow Darcy velocity and 
@@ -91,19 +95,13 @@ v = EC.inf_vel(phi, q, K)
 # Top
 Tbc = BC.fill_tbc(Len, Num, delta, hm, Lambda)
 # Bottom
-Bbc = BC.fill_bbc(Nx, Dif, q, delta[1], K)
+Bbc = BC.fill_bbc(Num, delta, q, K)
 # Left
 if N_LR == False : Lbc = BC.fill_lbc(Ly, Ny, Tbc[0])
 else : Lbc = BC.fill_lbc_N(Ny)
 # Right
 if N_LR == False : Rbc = BC.fill_rbc(Lx, Ly, Ny, Tbc[Nx - 1])
 else : Rbc = BC.fill_lbc_N(Ny)
-
-# ==============================================================================
-# Calculating coefficients for the LHS matrix just Dif/dx2 and Dif/dy2
-# ==============================================================================
-
-coef = FDMAux.coeff(Dif, delta)
 
 # =============================================================================
 # Building RHS of system to solve Laplace Equation 
