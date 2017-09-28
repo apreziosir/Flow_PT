@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 Solver de Laplace con diferencias finitas - Se hace con matrices eficientes
 Incluye el calculo de la red de flujo con los valores de presion (gradiente del 
-campo escalar de presiones)
+campo escalar de presiones) -ESTO SE DEBE TERMINAR!!!
+SUPOSICION FUERTE: El campo de velocidades tiene condiciones no slip en las 
+fronteras laterales. Lo mismo sucede en la condicion interior
 Created on Tue Sep 12 10:11:10 2017
 @author: apreziosir
 """
@@ -12,10 +15,9 @@ import numpy as np
 import scipy.sparse as scsp
 import scipy.io 
 import matplotlib.pyplot as plt
-from Exp_cond import alt_media, inf_vel
-from Bound_cond import fill_tbc, fill_bbc, fill_bbc_N, fill_rbc, fill_lbc
-from Bound_cond import fill_lbc_N
-from FDM_Auxiliar import positions, nzero, comp  
+import Exp_cond as EC
+import Bound_cond as BC
+import FDM_Auxilar.py as FDMAux 
 from Builder import RHS_build, LHS_build, LHS_build_N 
 from Velocity_prof import gw_vel
 
@@ -23,13 +25,12 @@ from Velocity_prof import gw_vel
 # Input variables - flow conditions
 # =============================================================================
 
-U = 0.15                    # Mean flow velocity in m/s
+U = 0.15                    # Mean flow velocity in m/s (change to calculate)
 H = 0.015                   # Dune height
 d = 0.10                    # Mean depth of flow
 phi = 0.33                  # Porosity of material
-q = -0.00015                     # Inflow or downflow velocity (+ up / - down)
+q = -0.00015                # Inflow or downflow velocity (+ up / - down)
 K = 0.1195                  # Hydraulic conductivity
-Neum = True                 # Neumann condition at the bottom?
 N_LR = False                # Neumann condition in the sides?
 
 # =============================================================================
@@ -37,53 +38,72 @@ N_LR = False                # Neumann condition in the sides?
 # =============================================================================
 
 Lx = 6.40           # Length of the flume (m) (considered for numerical model) 
-Ly = -0.25           # Depth of bed (m)
+Ly = 0.25           # Depth of bed (m)
 Lambda = 0.15       # Wavelength of bedform (m)
 Dif = 1.0           # Diffusion coefficient (just for fun)
 
-# =============================================================================
-# Numerical model input parameters
-# =============================================================================
+# ==============================================================================
+# Numerical model input parameters - modify to refine mesh
+# ==============================================================================
 
 Nx = 10              # Nodes in x direction (number)
 Ny = 10              # Nodes in y direction  (number)
 
-# Set up mesh - function that calculates everything
-dx = np.abs(Lx / (Nx - 1))
-dy = np.abs(Ly / (Ny - 1))
+# ==============================================================================
+# Setting up vectors to carry values into functions with less arguments
+# ==============================================================================
+
+# Set up mesh - vectors with lengths, Number of nodes and deltas
+Len = np.zeros(2)
+Len[0] = Lx
+Len[1] = Ly
+
+Num = np.zeros(2)
+Num[0] = Nx
+Num[1] = Ny
+
+delta = FDMAux.dx_dy(Lx, Nx, Ly, Ny)
+
+# Node positions with id for follow up
+xn = FDMAux.positions(Lx, Ly, Nx, Ny)
 
 # =============================================================================
-# Calculate hm value for the problem assigned, inflow Darcy velocity and set 
-# a vector for the boundary condition values - outside functions
+# Calculate hm value for the problem assigned, inflow Darcy velocity and 
+# estimate the mean free flow velocity value using the Manning formula
 # =============================================================================
 
-hm = alt_media(U, H, d)
+# Mean head over bed - formula from Elliott and Brooks (1997)
+hm = EC.alt_media(U, H, d)
+
+# Inflow/outflow velocity - from Darcy's law (Bear 1975)
+v = EC.inf_vel(phi, q, K)
+
+# Mean free flow velocity from Manning's formula
+# ACA SE DEBE PONER LA FORMULA PARA EL CALCULO DE U MEDIA Y NO DEJARLO A LO QUE 
+# SE NOS DE LA GANA (VERIFICAR QUE SEA CERCANO A 15 CM/S)
+
+# ==============================================================================
+# Creating vectors that store the value of the Boundary condition values for 
+# each one of the boundaries. This part takes the BC value as it is, hence the 
+# sign should be changed in the construction of the RHS matrix
+# ==============================================================================
 
 # Top
-if Neum == True : v = inf_vel(phi, q, K)
-Tbc = fill_tbc(Lx, Nx, hm, Lambda)
+Tbc = BC.fill_tbc(Len, Num, delta, hm, Lambda)
 # Bottom
-if Neum == False : Bbc = fill_bbc(Tbc, Nx, Lx, Ly)
-else : Bbc = fill_bbc_N(Nx, Dif, q, dy, K)
+Bbc = BC.fill_bbc(Nx, Dif, q, delta[1], K)
 # Left
-if N_LR == False : Lbc = fill_lbc(Ly, Ny, Tbc[0])
-else : Lbc = fill_lbc_N(Ny)
+if N_LR == False : Lbc = BC.fill_lbc(Ly, Ny, Tbc[0])
+else : Lbc = BC.fill_lbc_N(Ny)
 # Right
-if N_LR == False : Rbc = fill_rbc(Lx, Ly, Ny, Tbc[Nx - 1])
-else : Rbc = fill_lbc_N(Ny)
+if N_LR == False : Rbc = BC.fill_rbc(Lx, Ly, Ny, Tbc[Nx - 1])
+else : Rbc = BC.fill_lbc_N(Ny)
 
-# =============================================================================
-# Node positions - mesh generation
-# =============================================================================
+# ==============================================================================
+# Calculating coefficients for the LHS matrix just Dif/dx2 and Dif/dy2
+# ==============================================================================
 
-# Matrix with nodes ID's and positions
-xn = positions(Lx, Ly, Nx, Ny)
-
-# =============================================================================
-# Calculating the number of nonzero elements in matrix
-# =============================================================================
-
-nzero(Nx, Ny, Neum)
+coef = FDMAux.coeff(Dif, delta)
 
 # =============================================================================
 # Building RHS of system to solve Laplace Equation 
@@ -98,8 +118,7 @@ RHS = RHS_build(Tbc, Bbc, Lbc, Rbc)
 # Coordinate system storage - Later transformed to CSR (by Python script)
 # =============================================================================
 
-if Neum == False : LHS = LHS_build(Nx, Ny, dx, dy, Dif)
-else : LHS = LHS_build_N(Nx, Ny, dx, dy, Dif)
+LHS = LHS_build_N(Nx, Ny, dx, dy, Dif)
 LHS = LHS.tocsr()
 scipy.io.mmwrite('matrix_test', LHS)
 

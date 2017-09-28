@@ -13,16 +13,15 @@ import numpy as np
 # the Laplace's problem 
 # =============================================================================
     
-def fill_tbc(Lx, Nx, hm, Lambda):
+def fill_tbc(Len, Num, delta, hm, Lambda):
     
-    Tbc = np.linspace(0, Lx, Nx)            # Defining vector
+    Tbc = np.linspace(0, Len[0], Num[0])    # Defining vector
     k = 2 * np.pi / Lambda                  # Defining k
-    dx = np.abs(Lx / (Nx - 1))              # Calculating dx
     
     for i in range(0, len(Tbc)):
         
         # Real function - should work if test function works
-        Tbc[i] = hm * np.sin(k * (i * dx))
+        Tbc[i] = hm * np.sin(k * (i * delta[0]))
         
         # Test function - just to test the program under known conditions
 #        Tbc[i] = 7 * (i * dx) 
@@ -34,27 +33,6 @@ def fill_tbc(Lx, Nx, hm, Lambda):
 #   funcionamiento 
 #    print(Tbc)    
     return Tbc
-
-# =============================================================================
-# Filling the bottom boundary condition according to problem
-# It must vary (constant, linear)
-# =============================================================================
-
-def fill_bbc(Tbc, Nx, Lx, Ly):
-    
-    Bbc = np.zeros(Nx)
-    dx = np.abs(Lx / (Nx - 1))
-    Bbc = Tbc + np.abs(Ly)    # Defining vector
-    
-#   Test case 
-#    for i in range(0, len(Bbc)):
-        # Test case 1
-#        Bbc[i] = 6 * Ly * (i * dx) + 7 * (i * dx) + 8 * Ly
-        
-        # Test case 2
-#        Bbc[i] = Ly + i * dx
-        
-    return Bbc
 
 # =============================================================================
 # Fill the Bottom Bbc vector with Neumann Boundary condition

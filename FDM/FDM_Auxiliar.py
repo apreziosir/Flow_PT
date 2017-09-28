@@ -12,6 +12,19 @@ import scipy.sparse as scsp
 import os
 import matplotlib.pyplot as plt
 
+# ==============================================================================
+# Calculation of dx and dy with Lx, Nx, Ly and Ny - it is recurrent.
+# Results are stored in a vector with delta[0] = dx and delta[1] = Ny
+# ==============================================================================
+
+def dx_dy(Lx, Nx, Ly, Ny):
+    
+    delta = np.zeros(2)
+    delta[0] = np.abs(Lx / (Nx - 1))
+    delta[1] = np.abs(Ly / (Ny - 1))
+    
+    return delta
+
 # =============================================================================
 # Function that calculates nonzero elements using just Nx and Ny
 # =============================================================================
@@ -51,12 +64,33 @@ def positions(Lx, Ly, Nx, Ny):
     
     xn = np.zeros((Nx * Ny, 3))             # Node positions matrix
     
+    # Node number
     xn[:, 0] = np.arange(0, Nx * Ny, 1)
+    # Node x position
     xn[:, 1] = np.tile(x, Ny)
+    # Node y position
     xn[:, 2] = np.repeat(y, Nx)
         
         
     return xn
+
+# =============================================================================
+# Calculating the matrix coefficients for the LHS (used in both matrix 
+# constructions) 
+# =============================================================================
+    
+def coeff(Dif, delta):
+    
+    # Vector that stores coefficients (0 = ap, 1 = ae_aw, 2 = an_as)
+    coeff = np.zeros(3)
+    
+    # Calculating matrix coefficients
+    coeff[1] = (Dif / (delta[0] ** 2)) 
+    coeff[2] = (Dif / (delta[1] ** 2))
+    coeff[0] = - 2 * (coeff[2] + coeff[1]) 
+#    print(coeff)
+    
+    return coeff
 
 # =============================================================================
 # Comparison with theoretical functions (just for test cases, not for real 

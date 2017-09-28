@@ -11,30 +11,44 @@ import numpy as np
 import scipy.sparse as scsp
 
 # ==============================================================================
-# Building the top boundary of the domain
+# Building the top boundary of the domain - it's always the same snce the BC for
+# the top does not change with the type of problem
 # ==============================================================================
 
-def build_top(Nx):
+def build_top(Nx, Ny):
     
-    # The top row is always a Dirichlet BC, hence it is only built by ones in 
-    # the left hand side of the matrix
+    # The top part of the domainis always a Dirichlet BC, hence it is only built 
+    # by ones in the left hand side of the matrix. A matrix is defined to take 
+    # out all the values needed in the function
     Top = np.zeros((3, Nx))
     Top[0,:] = np.ones(Nx)
-    Top[1,:] = np.linspace(0, Nx - 1, Nx)
-    Top[2,:] = np.linspace(0, Nx - 1, Nx)    
+    Top[1,:] = np.linspace(Nx * (Ny - 1), (Nx * Ny) - 1, Nx)
+    Top[2,:] = np.linspace(Nx * (Ny - 1), (Nx * Ny) - 1, Nx)    
     
     return Top
 
 # ==============================================================================
-
+# Building the bottom BC - It is a Neumann BC always since the flows are imposed
+# and are losing, gaining or null fluxes
+# ==============================================================================
+    
+def build_bot(Nx):
+    
+    # This part builds the bottom of the domain, but it is the top part of the 
+    # matrix since the nodes are numbered from bottom to top
+    # Defining matrix in order to take out all the values generated in the 
+    # function
+       
+    
+    return Bott
 # ==============================================================================
 # General matrix builder - builds all kind of matrices
 # ==============================================================================
 
-def gen_build(Nx, Ny, Diff, Neum, N_LR):
+def gen_build(Nx, Ny, Lx, Ly, Diff, Neum, N_LR):
     
     # Building top vectors (data, i, j)
-    T = build_top(Nx)
+    T = build_top(Nx, Ny)
     Top_d = T[0,:]
     Top_i = T[1,:]
     Top_j = T[2,:]
