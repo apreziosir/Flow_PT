@@ -28,28 +28,27 @@ def build_top(Nx, Ny):
     return Top
 
 # ==============================================================================
-# Building the bottom BC - It is a Neumann BC always since the flows are imposed
-# and are losing, gaining or null fluxes
+# Building the bottom Boundary - It is a Neumann BC always since the flows are 
+# imposed and are losing, gaining or null fluxes
 # ==============================================================================
     
-def build_bot(Num, delta, coef):
+def build_bot(Num):
     
     # This part builds the bottom of the domain, but it is the top part of the 
     # matrix since the nodes are numbered from bottom to top
     # Defining matrix in order to take out all the values generated in the 
     # function
     Bott = np.zeros((3, 2 * Num[0]))
-    Bott[0,0:Nx] = np.ones(Num[0]) 
-    Bott[0,-Nx:] = -np.ones(Num[0]) 
+    Bott[0,0:Num[0]] = np.ones(Num[0]) 
+    Bott[0,-Num[0]:] = -np.ones(Num[0]) 
     Bott[1,:] = np.tile(np.linspace(0, Num[0] - 1, Num[0]), 2)
     Bott[2,:] = np.tile(np.linspace(0 + Num[0], 2 * Num[0] - 1, Num[0]), 2)
-    
-    
+        
     return Bott
 
 # ==============================================================================
-# Building the left BC - Dirichlet case (this is a first approach and has to be 
-# modified for modelling purposes)
+# Building the left Boundary - Dirichlet case (this is a first approach and 
+# has to be modified for modelling purposes)
 # ==============================================================================
     
 def build_left(Num):
@@ -62,8 +61,8 @@ def build_left(Num):
     return Left
 
 # ==============================================================================
-# Building the left BC - Neumann case (this is one of the assumptions of our 
-# model)
+# Building the left Boundary - Neumann case (this is one of the assumptions of 
+# our model)
 # ==============================================================================
     
 def build_left_N(Num):
@@ -76,8 +75,8 @@ def build_left_N(Num):
     return Left
 
 # ==============================================================================
-# Building the right BC - Dirichlet case (this is a first approach and has to be 
-# modified for modelling purposes)
+# Building the right Boundary - Dirichlet case (this is a first approach and 
+# has to be modified for modelling purposes)
 # ==============================================================================
     
 def build_right(Num):
@@ -90,8 +89,8 @@ def build_right(Num):
     return Right
 
 # ==============================================================================
-# Building the right BC - Neumann case (this is one of the assumptions of our 
-# model)
+# Building the right Boundary - Neumann case (this is one of the assumptions 
+# of our model)
 # ==============================================================================
     
 def build_right_N(Num):
@@ -104,7 +103,7 @@ def build_right_N(Num):
     return Right
 
 # ==============================================================================
-# General matrix builder - builds all kind of matrices
+# General matrix builder - builds all kind of matrices (LHS)
 # ==============================================================================
 
 def gen_build(Num, Len, delta, coef, N_LR):
@@ -116,7 +115,7 @@ def gen_build(Num, Len, delta, coef, N_LR):
     Top_j = T[2,:]
     
     # Building bottom nodes vectors (data, i, j)
-    B = build_bot(Num, Diff, delta)
+    B = build_bot(Num)
     Bot_d = B[0,:]
     Bot_i = B[1,:]
     Bot_j = B[2,:]
@@ -137,9 +136,9 @@ def gen_build(Num, Len, delta, coef, N_LR):
 
     # Building internal nodes vectors (data, i, j)    
     I = build_int()
-    Int_d = 
-    Int_i =
-    Int_j = 
+    Int_d = I[0,:]
+    Int_i = I[1,:]
+    Int_j = I[2,:]
     
     # Concatenating vectors that compose coordinate matrix
     LHS_data = np.concatenate((Top_d, Bot_d, Lft_d, Rgh_d, Int_d), axis=0)
