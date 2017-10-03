@@ -39,8 +39,8 @@ def build_bot(Num):
     # Defining matrix in order to take out all the values generated in the 
     # function
     Bott = np.zeros((3, 2 * int(Num[0])))
-    Bott[0,0:int(Num[0])] = np.ones(int(Num[0])) 
-    Bott[0,-int(Num[0]):] = -np.ones(int(Num[0])) 
+    Bott[0,:] = np.concatenate((np.ones(int(Num[0])), -np.ones(int(Num[0]))), 
+                                axis = 0) 
     Bott[1,:] = np.tile(np.linspace(0, Num[0] - 1, Num[0]), 2)
     Bott[2,:] = np.tile(np.linspace(0 + Num[0], 2 * Num[0] - 1, Num[0]), 2)
         
@@ -67,10 +67,13 @@ def build_left(Num):
     
 def build_left_N(Num):
     
-    Left = np.zeros((3, int(Num[1] - 2)))    
-    Left[0,:] = np.ones(int(Num[1] - 2))
-    Left[1,:] = np.arange(Nx, Nx * (Ny - 1), Nx)
-    Left[2,:] = np.arange(Num[0], Num[0] - 1, Num[0])    
+    Left = np.zeros((3, 2 * (int(Num[1] - 2))))    
+    Left[0,:] = np.concatenate((np.ones(int(Num[1] - 2)), -np.ones(int(Num[1] - 
+                                2))), axis = 0)
+    Left[1,:] = np.tile(np.arange(Num[0], Num[0] * (Num[1] - 1), Num[0]), 2)
+    Left[2,:] = np.concatenate((np.arange(Num[0], Num[0] * (Num[1] - 1), 
+            Num[0]), np.arange(Num[0] + 1, Num[0] * (Num[1] - 1) + 1, Num[0])),
+            axis = 0)    
     
     return Left
 
@@ -81,8 +84,8 @@ def build_left_N(Num):
     
 def build_right(Num):
     
-    Right = np.zeros((3, Num[1] - 2))    
-    Right[0,:] = np.ones(Num[1] - 2)
+    Right = np.zeros((3, int(Num[1] - 2)))    
+    Right[0,:] = np.ones(int(Num[1] - 2))
     Right[1,:] = np.arange(Num[0], Num[0] - 1, Num[0])
     Right[2,:] = np.arange(Num[0], Num[0] - 1, Num[0])    
     
@@ -95,10 +98,14 @@ def build_right(Num):
     
 def build_right_N(Num):
     
-    Right = np.zeros((3, Num[1] - 2))    
-    Right[0,:] = np.ones(Num[1] - 2)
-    Right[1,:] = np.arange(Num[0], Num[0] - 1, Num[0])
-    Right[2,:] = np.arange(Num[0], Num[0] - 1, Num[0])    
+    Right = np.zeros((3, 2 * (int(Num[1] - 2))))    
+    Right[0,:] = np.concatenate((-np.ones(int(Num[1] - 2)), np.ones(int(Num[1] - 
+                                2))), axis = 0)
+    Right[1,:] = np.tile(np.arange(2 * Num[0] - 1, Num[0] * Num[1] - 1, Num[0]), 
+                                   2)
+    Right[2,:] = np.concatenate((np.arange(2 * Num[0] - 2, Num[0] * Num[1] - 2, 
+            Num[0]), np.arange(2 * Num[0] - 1, Num[0] * Num[1] - 1, Num[0])),
+            axis = 0)    
     
     return Right
 
@@ -108,26 +115,25 @@ def build_right_N(Num):
 def build_int(Num, coef):
     
     # Number of internal nodes in the mesh
-    nod_int = (Num[0] * Num[1]) - (2 * Num[0] + 2 * (Num[1] - 2))
+    nod_int = int((Num[0] * Num[1]) - (2 * Num[0] + 2 * (Num[1] - 2)))
     
     # Number of internal node coefficients (each node has 5 coefficients)
     Intern = np.zeros((3, 5 * nod_int))
     
-    # Implementing counter to fill vectors in the loop
-    count = 0
+    # Arreglo con nodos internos
+    a = np.arange(Num[0], Num[0] * (Num[1] - 1), 1)
+    b = a[a % Num[0] != 0]
+    c = b[(b + 1) % Num[0] != 0]
+    print(c)
+    del(a, b)
     
-    for i in range(Num[0], (Num[0] * (Num[1] - 1))):
-        
-        if i % Num[0] != 0 and i % Num[0] != (Num[0] - 1):
-            
-            # Setting up the coefficients in the matrix
-            Intern[0, count:count + Num[0]] = np.array((coef[2], coef[1], 
-                                              coef[0], coef[1], coef[2])) 
-            Intern[1, count:count + Num[0]] = np.ones(5) * i
-            Intern[2, count:count + Num[0]] = np.array((i - Num[0], i - 1, i, 
-                                              i + 1, i + Num[0]))
-            # Add up the coefficient for the array creation
-            count += 5   
+    # Array to sum to the i column to obtain the j vector
+    d = np.tile((np.array([-Num[0], -1, 0, 1, Num[0]])), nod_int)
+    
+    Intern[0,:] = np.tile(np.array([coef[2], coef[1], coef[0], coef[1], 
+                                   coef[2]]), nod_int)
+    Intern[1,:] = np.repeat(c, 5)
+    Intern[2,:] = Intern[1,:] + d
     
     return Intern
 # ==============================================================================
@@ -156,8 +162,8 @@ def gen_build(Num, Len, delta, coef, N_LR):
     Lft_j = L[2,:]
     
     # Building right nodes vectors (data, i, j)
-    if N_LR == False : R = build_left(Num)
-    else : R = build_left_N(Num)
+    if N_LR == False : R = build_right(Num)
+    else : R = build_right_N(Num)
     Rgh_d = R[0,:]
     Rgh_i = R[1,:]
     Rgh_j = R[2,:]
@@ -174,7 +180,7 @@ def gen_build(Num, Len, delta, coef, N_LR):
     LHS_j = np.concatenate((Top_j, Bot_j, Lft_j, Rgh_j, Int_j), axis=0)
     
     # Building coordinate matrix - final step
-    lhs = scsp.coo_matrix((LHS_data, (LHS_i, LHS_j)), shape = ((Nx * Ny), 
-                       (Nx * Ny)))
+    lhs = scsp.coo_matrix((LHS_data, (LHS_i, LHS_j)), shape = ((Num[0] * 
+                          Num[1]), (Num[0] * Num[1])))
     
     return lhs

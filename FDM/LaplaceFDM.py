@@ -47,8 +47,8 @@ Dif = 1.0           # Diffusion coefficient (just for fun)
 # Numerical model input parameters - modify to refine mesh
 # ==============================================================================
 
-Nx = 10              # Nodes in x direction (number)
-Ny = 10              # Nodes in y direction  (number)
+Nx = 5              # Nodes in x direction (number)
+Ny = 5              # Nodes in y direction  (number)
 
 # ==============================================================================
 # Setting up vectors to carry values into functions with less arguments
