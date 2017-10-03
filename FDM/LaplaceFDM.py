@@ -17,8 +17,9 @@ import scipy.io
 import matplotlib.pyplot as plt
 import Exp_cond as EC
 import Bound_cond as BC
-import FDM_Auxilar.py as FDMAux 
-from Builder import RHS_build, LHS_build, LHS_build_N 
+import FDM_Auxiliar as FDMAux 
+from Builder import RHS_build
+import LHS_Build as LHSB
 from Velocity_prof import gw_vel
 
 # =============================================================================
@@ -31,7 +32,7 @@ d = 0.10                    # Mean depth of flow
 phi = 0.33                  # Porosity of material
 q = -0.00015                # Inflow or downflow velocity (+ up / - down)
 K = 0.1195                  # Hydraulic conductivity
-N_LR = False                # Neumann condition in the sides?
+N_LR = True                # Neumann condition in the sides?
 
 # =============================================================================
 # Input variables - domain and bed characteristics
@@ -95,7 +96,7 @@ v = EC.inf_vel(phi, q, K)
 # Top
 Tbc = BC.fill_tbc(Len, Num, delta, hm, Lambda)
 # Bottom
-Bbc = BC.fill_bbc(Num, delta, q, K)
+Bbc = BC.fill_bbc_N(Num, delta, q, K)
 # Left
 if N_LR == False : Lbc = BC.fill_lbc(Ly, Ny, Tbc[0])
 else : Lbc = BC.fill_lbc_N(Ny)
@@ -116,7 +117,7 @@ RHS = RHS_build(Tbc, Bbc, Lbc, Rbc)
 # Coordinate system storage - Later transformed to CSR (by Python script)
 # =============================================================================
 
-LHS = LHS_build_N(Nx, Ny, dx, dy, Dif)
+LHS = LHSB.gen_build(Num, Len, delta, coef, N_LR)
 LHS = LHS.tocsr()
 scipy.io.mmwrite('matrix_test', LHS)
 

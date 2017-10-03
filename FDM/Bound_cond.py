@@ -40,7 +40,7 @@ def fill_tbc(Len, Num, delta, hm, Lambda):
     
 def fill_bbc_N(Num, delta, q, K):
     
-    Bbc = np.ones(Num[0]) * (delta[1] * q) / K  
+    Bbc = np.ones(int(Num[0])) * (delta[1] * q) / K  
     
     return Bbc
 

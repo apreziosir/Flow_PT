@@ -15,15 +15,15 @@ import scipy.sparse as scsp
 # the top does not change with the type of problem
 # ==============================================================================
 
-def build_top(Nx, Ny):
+def build_top(Num):
     
     # The top part of the domainis always a Dirichlet BC, hence it is only built 
     # by ones in the left hand side of the matrix. A matrix is defined to take 
     # out all the values needed in the function
-    Top = np.zeros((3, Nx))
-    Top[0,:] = np.ones(Nx)
-    Top[1,:] = np.linspace(Nx * (Ny - 1), (Nx * Ny) - 1, Nx)
-    Top[2,:] = np.linspace(Nx * (Ny - 1), (Nx * Ny) - 1, Nx)    
+    Top = np.zeros((3, int(Num[0])))
+    Top[0,:] = np.ones(int(Num[0]))
+    Top[1,:] = np.linspace(Num[0] * (Num[1] - 1), (Num[0] * Num[1]) - 1, Num[0])
+    Top[2,:] = np.linspace(Num[0] * (Num[1] - 1), (Num[0] * Num[1]) - 1, Num[0])    
     
     return Top
 
@@ -38,9 +38,9 @@ def build_bot(Num):
     # matrix since the nodes are numbered from bottom to top
     # Defining matrix in order to take out all the values generated in the 
     # function
-    Bott = np.zeros((3, 2 * Num[0]))
-    Bott[0,0:Num[0]] = np.ones(Num[0]) 
-    Bott[0,-Num[0]:] = -np.ones(Num[0]) 
+    Bott = np.zeros((3, 2 * int(Num[0])))
+    Bott[0,0:int(Num[0])] = np.ones(int(Num[0])) 
+    Bott[0,-int(Num[0]):] = -np.ones(int(Num[0])) 
     Bott[1,:] = np.tile(np.linspace(0, Num[0] - 1, Num[0]), 2)
     Bott[2,:] = np.tile(np.linspace(0 + Num[0], 2 * Num[0] - 1, Num[0]), 2)
         
@@ -53,8 +53,8 @@ def build_bot(Num):
     
 def build_left(Num):
     
-    Left = np.zeros((3, Num[1] - 2))    
-    Left[0,:] = np.ones(Num[1] - 2)
+    Left = np.zeros((3, int(Num[1] - 2)))    
+    Left[0,:] = np.ones(int(Num[1] - 2))
     Left[1,:] = np.arange(Num[0], Num[0] - 1, Num[0])
     Left[2,:] = np.arange(Num[0], Num[0] - 1, Num[0])    
     
@@ -67,9 +67,9 @@ def build_left(Num):
     
 def build_left_N(Num):
     
-    Left = np.zeros((3, Num[1] - 2))    
-    Left[0,:] = np.ones(Num[1] - 2)
-    Left[1,:] = np.arange(Num[0], Num[0] - 1, Num[0])
+    Left = np.zeros((3, int(Num[1] - 2)))    
+    Left[0,:] = np.ones(int(Num[1] - 2))
+    Left[1,:] = np.arange(Nx, Nx * (Ny - 1), Nx)
     Left[2,:] = np.arange(Num[0], Num[0] - 1, Num[0])    
     
     return Left
@@ -103,6 +103,34 @@ def build_right_N(Num):
     return Right
 
 # ==============================================================================
+# Building the internal nodes - Independent of Neumann or Dirichlet BC
+# ==============================================================================
+def build_int(Num, coef):
+    
+    # Number of internal nodes in the mesh
+    nod_int = (Num[0] * Num[1]) - (2 * Num[0] + 2 * (Num[1] - 2))
+    
+    # Number of internal node coefficients (each node has 5 coefficients)
+    Intern = np.zeros((3, 5 * nod_int))
+    
+    # Implementing counter to fill vectors in the loop
+    count = 0
+    
+    for i in range(Num[0], (Num[0] * (Num[1] - 1))):
+        
+        if i % Num[0] != 0 and i % Num[0] != (Num[0] - 1):
+            
+            # Setting up the coefficients in the matrix
+            Intern[0, count:count + Num[0]] = np.array((coef[2], coef[1], 
+                                              coef[0], coef[1], coef[2])) 
+            Intern[1, count:count + Num[0]] = np.ones(5) * i
+            Intern[2, count:count + Num[0]] = np.array((i - Num[0], i - 1, i, 
+                                              i + 1, i + Num[0]))
+            # Add up the coefficient for the array creation
+            count += 5   
+    
+    return Intern
+# ==============================================================================
 # General matrix builder - builds all kind of matrices (LHS)
 # ==============================================================================
 
@@ -135,7 +163,7 @@ def gen_build(Num, Len, delta, coef, N_LR):
     Rgh_j = R[2,:]
 
     # Building internal nodes vectors (data, i, j)    
-    I = build_int()
+    I = build_int(Num, coef)
     Int_d = I[0,:]
     Int_i = I[1,:]
     Int_j = I[2,:]
