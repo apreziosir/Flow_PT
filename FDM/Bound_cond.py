@@ -40,7 +40,8 @@ def fill_tbc(Len, Num, delta, hm, Lambda):
     
 def fill_bbc_N(Num, delta, q, K):
     
-    Bbc = np.ones(int(Num[0])) * (delta[1] * q) / K  
+    # It has the sign that has to go in the RHS vector 
+    Bbc = -np.ones(int(Num[0])) * delta[1] / K  
     
     return Bbc
 
@@ -69,7 +70,8 @@ def fill_lbc(Ly, Ny, Tbc):
 
 # ==============================================================================
 # Filling left boundary condition when there is a V. Neumann imposed with no 
-# flow at the boundaries u = 0, v = 0
+# flow at the boundaries u = 0, v = 0. This routine is used also for the right
+# boundary when the gradient of pressure is 0
 # ==============================================================================
 
 def fill_lbc_N(Ny):

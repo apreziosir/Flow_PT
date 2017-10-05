@@ -8,20 +8,11 @@ Matrix and vector builder scripts for de FDM Laplace's equations
 
 import numpy as np
 
-# =============================================================================
-# Internal nodes calculation in a matrix (subroutine for this script)
-# =============================================================================
-
-def internos(Nx, Ny):
-    
-    intern = Nx * Ny - (2 * Nx) - 2 * (Ny - 2)
-    
-    return intern
-
-# =============================================================================
+# ==============================================================================
 # RHS vector construction - Works for both Dirichlet and Neumann BC
-# It is just a vector!
-# =============================================================================
+# It is just a vector! ALL OF THE SIGNS SHALLBE MANAGED IN THE ROUTINE 
+# Bound_cond FOR CONSISTENCY IN THE METHOD. dO NOT PLAY AROUND WITH SIGNS
+# ==============================================================================
 
 def RHS_build(Tbc, Bbc, Lbc, Rbc):
         
@@ -35,21 +26,25 @@ def RHS_build(Tbc, Bbc, Lbc, Rbc):
     # Inicio loop de llenado por bloques
     for i in range(0, Ny):
         
-        # bloque superior (Tbc)
+        # bloque superior (Tbc). Los signos se manejan desde la rutina Bound
+        # _cond
         if i == 0:
-            rhs[0:Nx] = -Tbc
+            rhs[0:Nx] = Bbc
     
         elif i == (Ny - 1):
-            rhs[-Nx:] = -Bbc
+            rhs[-Nx:] = Tbc
         
         # Bloques inteirores
         else:
+            # Los signos (si hay que cambiarlos), se manejan desde la funcion 
+            # Bound_Cond. En este caso no hay mucho problema porque son ceros,
+            # tener cuidado
             ind = i *Nx
-            zblock[0] = -Lbc[i - 1]
-            zblock[-1] = -Rbc[i - 1]
+            zblock[0] = Lbc[i - 1]
+            zblock[-1] = Rbc[i - 1]
             rhs[ind:ind + Nx] = zblock
 
 #   Este pedazo se descomenta cuando se necesite ver que el vector del lado 
 #   derecho está bien construido o no            
-#    print(rhs)
-    return rhs
+#    print((rhs, rhs.shape))
+#    return rhs

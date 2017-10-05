@@ -42,8 +42,11 @@ def build_bot(Num):
     Bott[0,:] = np.concatenate((np.ones(int(Num[0])), -np.ones(int(Num[0]))), 
                                 axis = 0) 
     Bott[1,:] = np.tile(np.linspace(0, Num[0] - 1, Num[0]), 2)
-    Bott[2,:] = np.tile(np.linspace(Num[0], 2 * Num[0] - 1, Num[0]), 2)
-        
+    Bott[2,:] = np.concatenate((np.linspace(0, Num[0] - 1, Num[0]), 
+                np.linspace(Num[0], 2 * Num[0] - 1, Num[0])), axis=0)
+    
+    print(Bott.shape)
+    
     return Bott
 
 # ==============================================================================
@@ -124,7 +127,7 @@ def build_int(Num, coef):
     a = np.arange(Num[0], Num[0] * (Num[1] - 1), 1)
     b = a[a % Num[0] != 0]
     c = b[(b + 1) % Num[0] != 0]
-    print(c)
+#    print(c)
     del(a, b)
     
     # Array to sum to the i column to obtain the j vector
@@ -179,9 +182,20 @@ def gen_build(Num, Len, delta, coef, N_LR):
     LHS_i = np.concatenate((Top_i, Bot_i, Lft_i, Rgh_i, Int_i), axis=0)
     LHS_j = np.concatenate((Top_j, Bot_j, Lft_j, Rgh_j, Int_j), axis=0)
     
+#    print('Esto es lo que contiene el vector del fondo')
+#    print(Bot_d)
+#    print(Bot_i)
+#    print(Bot_j)
+    
     # Building coordinate matrix - final step
     lhs = scsp.coo_matrix((LHS_data, (LHS_i, LHS_j)), shape = ((Num[0] * 
                           Num[1]), (Num[0] * Num[1])))
+    
+    # Esta parte imprime los coeficientes de la matriz del sistema, se prende 
+    # cuando se requiere ver errores de calculo para determinar si los 
+    # coeficientes estan bien puestos
+#    print(lhs)
+#    print(scsp.issparse(lhs))
     
     return lhs
 

@@ -22,21 +22,21 @@ from Builder import RHS_build
 import LHS_Build as LHSB
 from Velocity_prof import gw_vel
 
-# =============================================================================
+# ==============================================================================
 # Input variables - flow conditions
-# =============================================================================
+# ==============================================================================
 
 U = 0.15                    # Mean flow velocity in m/s (change to calculate)
 H = 0.015                   # Dune height
 d = 0.10                    # Mean depth of flow
 phi = 0.33                  # Porosity of material
-q = -0.00015                # Inflow or downflow velocity (+ up / - down)
+q = 0.                      # Inflow or downflow velocity (+ up / - down)
 K = 0.1195                  # Hydraulic conductivity
-N_LR = True                # Neumann condition in the sides?
+N_LR = True                 # Neumann condition in the sides?
 
-# =============================================================================
+# ==============================================================================
 # Input variables - domain and bed characteristics
-# =============================================================================
+# ==============================================================================
 
 Lx = 6.40           # Length of the flume (m) (considered for numerical model) 
 Ly = 0.25           # Depth of bed (m)
@@ -47,8 +47,8 @@ Dif = 1.0           # Diffusion coefficient (just for fun)
 # Numerical model input parameters - modify to refine mesh
 # ==============================================================================
 
-Nx = 5              # Nodes in x direction (number)
-Ny = 5              # Nodes in y direction  (number)
+Nx = 400                # Nodes in x direction (number)
+Ny = 40                 # Nodes in y direction  (number)
 
 # ==============================================================================
 # Setting up vectors to carry values into functions with less arguments
