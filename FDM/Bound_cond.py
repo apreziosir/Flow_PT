@@ -40,8 +40,12 @@ def fill_tbc(Len, Num, delta, hm, Lambda):
     
 def fill_bbc_N(Num, delta, q, K):
     
+    # Converting q to consistent units (it is given in cm/day and it shall be 
+    # converted to m/s)
+    q_r = q / (8.64e6)
+    
     # It has the sign that has to go in the RHS vector 
-    Bbc = -np.ones(int(Num[0])) * delta[1] / K  
+    Bbc = -np.ones(int(Num[0])) * (delta[1] * q_r) / K  
     
     return Bbc
 

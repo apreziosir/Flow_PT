@@ -11,14 +11,17 @@ Created on Tue Sep 12 10:11:10 2017
 @author: apreziosir
 """
 
+# Python libraries to make the program work. All of them are standard Python, 
+# nothing out of the ordinary
 import numpy as np
 import scipy.sparse as scsp
 import scipy.io 
 import matplotlib.pyplot as plt
+# Funcions written by author in Python for different purposes
 import Exp_cond as EC
 import Bound_cond as BC
 import FDM_Auxiliar as FDMAux 
-from Builder import RHS_build
+import RHS_Build as RHSB
 import LHS_Build as LHSB
 from Velocity_prof import gw_vel
 
@@ -26,12 +29,12 @@ from Velocity_prof import gw_vel
 # Input variables - flow conditions
 # ==============================================================================
 
-U = 0.15                    # Mean flow velocity in m/s (change to calculate)
-H = 0.015                   # Dune height
-d = 0.10                    # Mean depth of flow
-phi = 0.33                  # Porosity of material
-q = 0.                      # Inflow or downflow velocity (+ up / - down)
-K = 0.1195                  # Hydraulic conductivity
+U = 0.15                    # Mean flow velocity in m/s 
+H = 0.015                   # Dune height (m)
+d = 0.10                    # Mean depth of flow (m)
+phi = 0.33                  # Porosity of material (nondimensional)
+q = 25                      # Inflow or downflow velocity (+ up / - down)(cm/d)
+K = 0.1195                  # Hydraulic conductivity 
 N_LR = True                 # Neumann condition in the sides?
 
 # ==============================================================================
@@ -41,14 +44,15 @@ N_LR = True                 # Neumann condition in the sides?
 Lx = 6.40           # Length of the flume (m) (considered for numerical model) 
 Ly = 0.25           # Depth of bed (m)
 Lambda = 0.15       # Wavelength of bedform (m)
-Dif = 1.0           # Diffusion coefficient (just for fun)
+Dif = 1.0           # Diffusion coefficient (just for fun - not used in this 
+                    # case)
 
 # ==============================================================================
 # Numerical model input parameters - modify to refine mesh
 # ==============================================================================
 
-Nx = 400                # Nodes in x direction (number)
-Ny = 40                 # Nodes in y direction  (number)
+Nx = 3200                # Nodes in x direction (number)
+Ny = 125                 # Nodes in y direction  (number)
 
 # ==============================================================================
 # Setting up vectors to carry values into functions with less arguments
@@ -72,10 +76,10 @@ xn = FDMAux.positions(Lx, Ly, Nx, Ny)
 # Calculating coefficients for matrix
 coef = FDMAux.coeff(Dif, delta)
 
-# =============================================================================
+# ==============================================================================
 # Calculate hm value for the problem assigned, inflow Darcy velocity and 
 # estimate the mean free flow velocity value using the Manning formula
-# =============================================================================
+# ==============================================================================
 
 # Mean head over bed - formula from Elliott and Brooks (1997)
 hm = EC.alt_media(U, H, d)
@@ -104,18 +108,18 @@ else : Lbc = BC.fill_lbc_N(Ny)
 if N_LR == False : Rbc = BC.fill_rbc(Lx, Ly, Ny, Tbc[Nx - 1])
 else : Rbc = BC.fill_lbc_N(Ny)
 
-# =============================================================================
+# ==============================================================================
 # Building RHS of system to solve Laplace Equation 
 # (Results vector) - This vector is built the same way if there is a Dirichlet
 # or Neumann BC since it is just a vector
-# =============================================================================
+# ==============================================================================
 
-RHS = RHS_build(Tbc, Bbc, Lbc, Rbc)
+RHS = RHSB.RHS_build(Tbc, Bbc, Lbc, Rbc)
 
-# =============================================================================
+# ==============================================================================
 # Building LHS matrix to solve the system
 # Coordinate system storage - Later transformed to CSR (by Python script)
-# =============================================================================
+# ==============================================================================
 
 LHS = LHSB.gen_build(Num, Len, delta, coef, N_LR)
 LHS = LHS.tocsr()
@@ -125,17 +129,17 @@ scipy.io.mmwrite('matrix_test', LHS)
 plt.spy(LHS, markersize = 2)
 plt.show()
 
-# =============================================================================
+# ==============================================================================
 # Solving linear system for the pressure field (Laplace's equation)
-# =============================================================================
+# ==============================================================================
 
 # Gradiente con jugado - no esta funcionando
 #P = scsp.linalg.cg(LHS, RHS)
 P = scsp.linalg.spsolve(LHS, RHS)
 
-# =============================================================================
+# ==============================================================================
 # Reshaping and plotting solution to check values and different Bc's
-# =============================================================================
+# ==============================================================================
 
 RTA = np.reshape(P, (Ny, Nx), order='C')
 
@@ -152,9 +156,9 @@ print('El valor de RTA es... ')
 print(RTA)
 print('*---------------------------*')
 
-# =============================================================================
+# ==============================================================================
 # Plotting the solution for visual check
-# =============================================================================
+# ==============================================================================
 
 x = np.linspace(0, Lx, Nx)
 y = np.linspace(0, Ly, Ny)
@@ -169,10 +173,10 @@ plt.ylim((Ly, 0))
 #plt.clabel(CS4, fmt='%2.1f', colors='w', fontsize=14)
 plt.show()
 
-# =============================================================================
+# ==============================================================================
 # Comparing with test functions values (just for test cases, not real 
 # conditions)
-# =============================================================================
+# ==============================================================================
 
 #err = comp(RTA, Nx, Ny, Lx, Ly)
 ##CS5 = plt.contourf(X, Y, err)
@@ -185,7 +189,8 @@ plt.show()
 #np.savetxt('sol_numerica.csv', RTA, delimiter=' ', newline='\n')
 #np.savetxt('sol_analit.csv', err, delimiter=' ', newline='\n')
 
-# =============================================================================
-# Calculating the velocity field with Darcy's law q = K grad(h)
-# =============================================================================
-
+# ==============================================================================
+# Calculating the velocity field with Darcy's law q = K grad(h). This is set in
+# another script that estimates the gradient of a scalar field multiplied by
+# a Permeability coefficient (constant in all directions)
+# ==============================================================================

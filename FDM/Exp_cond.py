@@ -3,7 +3,9 @@
 """
 Created on Fri Sep 22 16:23:28 2017
 Functions to estimate the values taken out from the lab and from Packman's 
-paper
+paper. The only condition that is not calculated in this script is the Hm, that 
+corresponds to the pressure boundary condition at the top of the domain. 
+That value is estimated in the Bound_cond script for making thing easy
 @author: apreziosir
 """
 
@@ -32,3 +34,4 @@ def inf_vel(phi, q, K):
     v = q / K
     
     return v
+
