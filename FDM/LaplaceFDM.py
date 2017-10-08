@@ -33,7 +33,7 @@ U = 0.15                    # Mean flow velocity in m/s
 H = 0.015                   # Dune height (m)
 d = 0.10                    # Mean depth of flow (m)
 phi = 0.33                  # Porosity of material (nondimensional)
-q = -25                      # Inflow or downflow velocity (+ up / - down)(cm/d)
+q = 25                      # Inflow or downflow velocity (+ up / - down)(cm/d)
 K = 0.1195                  # Hydraulic conductivity 
 N_LR = True                 # Neumann condition in the sides?
 
