@@ -23,7 +23,7 @@ import Bound_cond as BC
 import FDM_Auxiliar as FDMAux 
 import RHS_Build as RHSB
 import LHS_Build as LHSB
-from Velocity_prof import gw_vel
+import Plot_HM as HM
 
 # ==============================================================================
 # Input variables - flow conditions
@@ -33,7 +33,7 @@ U = 0.15                    # Mean flow velocity in m/s
 H = 0.015                   # Dune height (m)
 d = 0.10                    # Mean depth of flow (m)
 phi = 0.33                  # Porosity of material (nondimensional)
-q = 25                      # Inflow or downflow velocity (+ up / - down)(cm/d)
+q = -25                      # Inflow or downflow velocity (+ up / - down)(cm/d)
 K = 0.1195                  # Hydraulic conductivity 
 N_LR = True                 # Neumann condition in the sides?
 
@@ -51,8 +51,8 @@ Dif = 1.0           # Diffusion coefficient (just for fun - not used in this
 # Numerical model input parameters - modify to refine mesh
 # ==============================================================================
 
-Nx = 3200                # Nodes in x direction (number)
-Ny = 125                 # Nodes in y direction  (number)
+Nx = 100                # Nodes in x direction (number)
+Ny = 100                 # Nodes in y direction  (number)
 
 # ==============================================================================
 # Setting up vectors to carry values into functions with less arguments
@@ -145,33 +145,22 @@ RTA = np.reshape(P, (Ny, Nx), order='C')
 
 np.set_printoptions(formatter={'float': '{: 0.4f}'.format})
 
-print('*---------------------------*')
-print('El valor máximo de RTA es:')
-print(np.amax(RTA))
-
-print('El valor mínimo de RTA es:')
-print(np.amin(RTA))
-
-print('El valor de RTA es... ')
-print(RTA)
-print('*---------------------------*')
+#print('*---------------------------*')
+#print('El valor máximo de RTA es:')
+#print(np.amax(RTA))
+#
+#print('El valor mínimo de RTA es:')
+#print(np.amin(RTA))
+#
+#print('El valor de RTA es... ')
+#print(RTA)
+#print('*---------------------------*')
 
 # ==============================================================================
-# Plotting the solution for visual check
+# Plotting the pressure field of the problem
 # ==============================================================================
 
-x = np.linspace(0, Lx, Nx)
-y = np.linspace(0, Ly, Ny)
-X, Y = np.meshgrid(x, y)
-CS4 = plt.contourf(X, Y, RTA)
-cbar = plt.colorbar(CS4)
-#CS4.set_clim(vmin=-10000, vmax=1000)
-#plt.clim(-np.amax(RTA),np.amax(RTA))
-plt.gca().set_aspect(9, adjustable='box')
-plt.ylim((Ly, 0))
-#cbar.Normalize(clip=False)
-#plt.clabel(CS4, fmt='%2.1f', colors='w', fontsize=14)
-plt.show()
+HM.Plot_HM(RTA, Len, Num)
 
 # ==============================================================================
 # Comparing with test functions values (just for test cases, not real 
@@ -190,7 +179,17 @@ plt.show()
 #np.savetxt('sol_analit.csv', err, delimiter=' ', newline='\n')
 
 # ==============================================================================
-# Calculating the velocity field with Darcy's law q = K grad(h). This is set in
-# another script that estimates the gradient of a scalar field multiplied by
-# a Permeability coefficient (constant in all directions)
+# Calculating the velocity field with Darcy's law q = K grad(h). The numpy 
+# gradient function is used with the dx and dy taken from the delta array
 # ==============================================================================
+
+Vel = np.gradient(RTA, delta[0], delta[1])
+u = Vel[0]
+v = Vel[1]
+
+# ==============================================================================
+# Plotting the velocity fields in each one of the directions that was calculated
+# ==============================================================================
+
+HM.Plot_HM(u, Len, Num)
+HM.Plot_HM(v, Len, Num)
