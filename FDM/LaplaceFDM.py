@@ -124,7 +124,9 @@ RHS = RHSB.RHS_build(Tbc, Bbc, Lbc, Rbc, B2)
 
 LHS = LHSB.gen_build(Num, Len, delta, coef, N_LR, B2)
 LHS = LHS.tocsr()
-scipy.io.mmwrite('matrix_test', LHS)
+
+# This part wites matrix in a file. Just ignore when possible (large file)
+#scipy.io.mmwrite('matrix_test', LHS)
 
 # Checking matrix construction
 plt.spy(LHS, markersize = 2)
