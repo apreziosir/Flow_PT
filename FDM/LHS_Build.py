@@ -32,20 +32,59 @@ def build_top(Num):
 # imposed and are losing, gaining or null fluxes
 # ==============================================================================
     
-def build_bot(Num):
+def build_bot(Num, delta, B2):
     
     # This part builds the bottom of the domain, but it is the top part of the 
     # matrix since the nodes are numbered from bottom to top
     # Defining matrix in order to take out all the values generated in the 
     # function
-    Bott = np.zeros((3, 2 * int(Num[0])))
-    Bott[0,:] = np.concatenate((np.ones(int(Num[0])), -np.ones(int(Num[0]))), 
-                                axis = 0) 
-    Bott[1,:] = np.tile(np.linspace(0, Num[0] - 1, Num[0]), 2)
-    Bott[2,:] = np.concatenate((np.linspace(0, Num[0] - 1, Num[0]), 
-                np.linspace(Num[0], 2 * Num[0] - 1, Num[0])), axis=0)
     
-    print(Bott.shape)
+    if B2 == False:
+        
+        Bott = np.zeros((3, 2 * int(Num[0])))
+        Bott[0,:] = np.concatenate((np.ones(int(Num[0])), 
+                    -np.ones(int(Num[0]))), axis = 0) 
+        Bott[1,:] = np.tile(np.linspace(0, Num[0] - 1, Num[0]), 2)
+        Bott[2,:] = np.concatenate((np.linspace(0, Num[0] - 1, Num[0]), 
+                    np.linspace(Num[0], 2 * Num[0] - 1, Num[0])), axis=0)
+    
+    else: 
+        
+        aE_aW = 1 / (delta[0] ** 2)
+        aN = 1 / (delta[1] ** 2)
+        aP = -(aE_aW + aN)
+        
+        # Single node values, they will be tiled the times needed in the Bott 
+        # vector construction (c for corner, i for internal)
+        c_data = np.array([aN, aE_aW, aP])
+        i_data = np.repeat(np.array([2 * aN, aE_aW, aP, aE_aW]), 
+                           int(Num[0] - 2))
+        
+        # Coordinates of the corner nodes (i = row, j = column)
+        c_il = np.repeat(0, 3)
+        c_jl = np.array([Num[0], 1, 0]) 
+        c_ir = np.repeat(Num[0] - 1, 3)
+        c_jr = np.array([2 * Num[0] - 1, Num[0] - 2, Num[0] - 1])
+                
+        # Coordinates of the internal nodes (i = row, j = column)
+        i_i = np.tile(np.linspace(1, Num[0] - 2, int(Num[0] - 2)), 4)
+        i_j_n = np.linspace(Num[0] + 1, 2 * Num[0] - 2, Num[0] - 2)
+        i_j_w = np.linspace(0, Num[0] - 3, Num[0] - 2)
+        i_j_p = np.linspace(1, Num[0] - 2, Num[0] - 2)
+        i_j_e = np.linspace(2, Num[0] - 1, Num[0] - 2)
+        i_j = np.concatenate((i_j_n, i_j_w, i_j_p, i_j_e), axis = 0)
+        
+        print(i_data)
+        print(i_i)
+        print(i_j)
+        
+        # Bott vector construction
+        Bott = np.zeros((3, 6 + int((Num[0] - 2) * 4)))
+        Bott[0,:] = np.concatenate((c_data, i_data, c_data), axis = 0)
+        Bott[1,:] = np.concatenate((c_il, i_i, c_ir), axis = 0)
+        Bott[2,:] = np.concatenate((c_jl, i_j, c_jr), axis = 0)
+        
+#    print(Bott.shape)
     
     return Bott
 
@@ -143,7 +182,7 @@ def build_int(Num, coef):
 # General matrix builder - builds all kind of matrices (LHS)
 # ==============================================================================
 
-def gen_build(Num, Len, delta, coef, N_LR):
+def gen_build(Num, Len, delta, coef, N_LR, B2):
     
     # Building top vectors (data, i, j)
     T = build_top(Num)
@@ -152,7 +191,7 @@ def gen_build(Num, Len, delta, coef, N_LR):
     Top_j = T[2,:]
     
     # Building bottom nodes vectors (data, i, j)
-    B = build_bot(Num)
+    B = build_bot(Num, delta, B2)
     Bot_d = B[0,:]
     Bot_i = B[1,:]
     Bot_j = B[2,:]

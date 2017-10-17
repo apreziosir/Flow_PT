@@ -14,7 +14,7 @@ import numpy as np
 # Bound_cond FOR CONSISTENCY IN THE METHOD. dO NOT PLAY AROUND WITH SIGNS
 # ==============================================================================
 
-def RHS_build(Tbc, Bbc, Lbc, Rbc):
+def RHS_build(Tbc, Bbc, Lbc, Rbc, B2):
     
     
     # Defining the Numbers Nx and Ny. They can be imported or estimated from
@@ -32,10 +32,10 @@ def RHS_build(Tbc, Bbc, Lbc, Rbc):
         # bloque superior (Tbc). Los signos se manejan desde la rutina Bound
         # _cond
         if i == 0:
-            rhs[0:Nx] = Tbc
+            rhs[0:Nx] = Bbc
     
         elif i == (Ny - 1):
-            rhs[-Nx:] = Bbc
+            rhs[-Nx:] = Tbc
         
         # Bloques inteirores
         else:
@@ -49,6 +49,6 @@ def RHS_build(Tbc, Bbc, Lbc, Rbc):
 
 #   Este pedazo se descomenta cuando se necesite ver que el vector del lado 
 #   derecho está bien construido o no            
-    print((rhs, rhs.shape))
+#    print((rhs, rhs.shape))
             
     return rhs

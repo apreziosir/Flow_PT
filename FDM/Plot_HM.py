@@ -27,7 +27,23 @@ def Plot_HM(RTA, Len, Num):
     #CS4.set_clim(vmin=-10000, vmax=1000)
     #plt.clim(-np.amax(RTA),np.amax(RTA))
     plt.gca().set_aspect(20, adjustable='box')
-    plt.ylim((Len[1], 0))
+#    plt.ylim((Len[1], 0))
     #cbar.Normalize(clip=False)
     #plt.clabel(CS4, fmt='%2.1f', colors='w', fontsize=14)
     plt.show()
+    
+# ==============================================================================
+# Plotting streamlines (velocity field)
+# ==============================================================================
+    
+def Plot_SL(u, v, Len, Num):
+    
+    x = np.linspace(0, Len[0], Num[0])
+    y = np.linspace(0, Len[1], Num[1])
+    X, Y = np.meshgrid(x, y)
+    
+    fig0, ax0 = plt.subplots()
+    strm = ax0.streamplot(X, Y, u, v, density=[2, 2], cmap=plt.cm.autumn)
+#    fig0.colorbar(strm.lines)
+    
+    

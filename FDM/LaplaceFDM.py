@@ -36,6 +36,7 @@ phi = 0.33                  # Porosity of material (nondimensional)
 q = 25                      # Inflow or downflow velocity (+ up / - down)(cm/d)
 K = 0.1195                  # Hydraulic conductivity 
 N_LR = True                 # Neumann condition in the sides?
+B2 = True                  # Build 2 of bottom BC
 
 # ==============================================================================
 # Input variables - domain and bed characteristics
@@ -51,8 +52,8 @@ Dif = 1.0           # Diffusion coefficient (just for fun - not used in this
 # Numerical model input parameters - modify to refine mesh
 # ==============================================================================
 
-Nx = 100                # Nodes in x direction (number)
-Ny = 100                 # Nodes in y direction  (number)
+Nx = 3200                # Nodes in x direction (number)
+Ny = 125                 # Nodes in y direction  (number)
 
 # ==============================================================================
 # Setting up vectors to carry values into functions with less arguments
@@ -100,7 +101,7 @@ v = EC.inf_vel(phi, q, K)
 # Top
 Tbc = BC.fill_tbc(Len, Num, delta, hm, Lambda)
 # Bottom
-Bbc = BC.fill_bbc_N(Num, delta, q, K)
+Bbc = BC.fill_bbc_N(Num, delta, q, K, B2)
 # Left
 if N_LR == False : Lbc = BC.fill_lbc(Ly, Ny, Tbc[0])
 else : Lbc = BC.fill_lbc_N(Ny)
@@ -114,14 +115,14 @@ else : Rbc = BC.fill_lbc_N(Ny)
 # or Neumann BC since it is just a vector
 # ==============================================================================
 
-RHS = RHSB.RHS_build(Tbc, Bbc, Lbc, Rbc)
+RHS = RHSB.RHS_build(Tbc, Bbc, Lbc, Rbc, B2)
 
 # ==============================================================================
 # Building LHS matrix to solve the system
 # Coordinate system storage - Later transformed to CSR (by Python script)
 # ==============================================================================
 
-LHS = LHSB.gen_build(Num, Len, delta, coef, N_LR)
+LHS = LHSB.gen_build(Num, Len, delta, coef, N_LR, B2)
 LHS = LHS.tocsr()
 scipy.io.mmwrite('matrix_test', LHS)
 
@@ -187,9 +188,19 @@ Vel = np.gradient(RTA, delta[0], delta[1])
 u = Vel[0]
 v = Vel[1]
 
+# Deleting for space purposes
+del(Vel)
+
 # ==============================================================================
 # Plotting the velocity fields in each one of the directions that was calculated
 # ==============================================================================
 
 HM.Plot_HM(u, Len, Num)
 HM.Plot_HM(v, Len, Num)
+
+# ==============================================================================
+# Plotting streamlines
+# ==============================================================================
+
+HM.Plot_SL(u, v, Len, Num)
+

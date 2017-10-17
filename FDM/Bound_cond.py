@@ -38,15 +38,24 @@ def fill_tbc(Len, Num, delta, hm, Lambda):
 # Fill the Bottom Bbc vector with Neumann Boundary condition
 # =============================================================================
     
-def fill_bbc_N(Num, delta, q, K):
+def fill_bbc_N(Num, delta, q, K, B2):
     
     # Converting q to consistent units (it is given in cm/day and it shall be 
     # converted to m/s)
     q_r = q / (8.64e6)
     
-    # It has the sign that has to go in the RHS vector 
-    Bbc = -np.ones(int(Num[0])) * (delta[1] * q_r) / K  
+    if B2 == False:
+        
+        # It has the sign that has to go in the RHS vector 
+        Bbc = -np.ones(int(Num[0])) * (delta[1] * q_r) / K  
     
+    else: 
+        # It has the sign thas has to go in the RHS vector already
+        Bbc = np.ones(int(Num[0]))
+        Bbc[0] = q_r / (K * delta[1])
+        Bbc[-1] = q_r / (K * delta[1])
+        Bbc[1:int(Num[0] - 1)] = (2 * q_r) / (K * delta[1])
+        
     return Bbc
 
 # =============================================================================
