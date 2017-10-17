@@ -74,9 +74,9 @@ def build_bot(Num, delta, B2):
         i_j_e = np.linspace(2, Num[0] - 1, Num[0] - 2)
         i_j = np.concatenate((i_j_n, i_j_w, i_j_p, i_j_e), axis = 0)
         
-        print(i_data)
-        print(i_i)
-        print(i_j)
+#        print(i_data)
+#        print(i_i)
+#        print(i_j)
         
         # Bott vector construction
         Bott = np.zeros((3, 6 + int((Num[0] - 2) * 4)))
